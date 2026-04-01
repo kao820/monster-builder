@@ -511,9 +511,16 @@ async function tiffFileToDataUrl(file){
   if(!window.UTIF) throw new Error('UTIF not loaded');
   const ifds=UTIF.decode(buffer);
   if(!ifds || !ifds.length) throw new Error('TIFF decode failed');
-  UTIF.decodeImages(buffer, ifds);
   const page=ifds[0];
+  if(!page.data){
+    if(typeof UTIF.decodeImage === 'function'){
+      UTIF.decodeImage(buffer, page, ifds);
+    } else if(typeof UTIF.decodeImages === 'function'){
+      UTIF.decodeImages(buffer, ifds);
+    }
+  }
   const rgba=UTIF.toRGBA8(page);
+  if(!rgba || !page.width || !page.height) throw new Error('TIFF RGBA decode failed');
   const canvas=document.createElement('canvas');
   canvas.width=page.width;
   canvas.height=page.height;
@@ -541,7 +548,7 @@ async function handleImageUpload(event){
     updateAll();
   }catch(err){
     console.error(err);
-    alert(isTiff ? 'Не удалось открыть TIFF. После публикации через GitHub Pages это должно работать, если библиотека загрузилась. Пока можно временно конвертировать файл в PNG/WebP.' : 'Не удалось прочитать изображение.');
+    alert(isTiff ? 'Не удалось открыть TIFF. Проверь, что декодер TIFF загрузился, или временно конвертируй файл в PNG/WebP.' : 'Не удалось прочитать изображение.');
   }finally{
     event.target.value='';
   }
@@ -570,6 +577,28 @@ async function downloadPNG(){
   const node=document.getElementById('previewCanvas');
   const filename=`${slugify(text('name')||'monster')}.png`;
 
+  const applyContainImageStyle=(root)=>{
+    const art=root.querySelector('#monsterArt');
+    const artWrap=root.querySelector('.showcase-art');
+    const live=document.getElementById('monsterArt');
+    if(!art || !artWrap || !live) return;
+    const nw=live.naturalWidth || live.width;
+    const nh=live.naturalHeight || live.height;
+    if(!nw || !nh) return;
+    const boxW=artWrap.clientWidth || artWrap.offsetWidth || 420;
+    const boxH=artWrap.clientHeight || artWrap.offsetHeight || 420;
+    const ratio=nw/nh;
+    const boxRatio=boxW/boxH;
+    let drawW, drawH;
+    if(ratio>boxRatio){ drawW=boxW; drawH=boxW/ratio; }
+    else { drawH=boxH; drawW=boxH*ratio; }
+    Object.assign(art.style, {
+      position:'absolute', left:'50%', bottom:'0', top:'auto', right:'auto', inset:'auto',
+      width:`${drawW}px`, height:`${drawH}px`, maxWidth:'none', maxHeight:'none',
+      transform:'translateX(-50%)', objectFit:'fill'
+    });
+  };
+
   if(window.html2canvas){
     try{
       const canvas=await window.html2canvas(node, {
@@ -578,7 +607,11 @@ async function downloadPNG(){
         useCORS: true,
         allowTaint: true,
         logging: false,
-        imageTimeout: 0
+        imageTimeout: 0,
+        onclone: (clonedDoc)=>{
+          const cloneRoot=clonedDoc.getElementById('previewCanvas');
+          if(cloneRoot) applyContainImageStyle(cloneRoot);
+        }
       });
       canvas.toBlob(blob=>{
         if(blob) triggerDownload(blob, filename);
@@ -591,10 +624,13 @@ async function downloadPNG(){
   }
 
   const clone=node.cloneNode(true);
+  applyContainImageStyle(clone);
   const wrapper=document.createElement('div');
   wrapper.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
   wrapper.appendChild(clone);
-  const styleText=Array.from(document.styleSheets).map(sheet=>{ try{return Array.from(sheet.cssRules).map(rule=>rule.cssText).join('\n');}catch(e){return '';} }).join('\n');
+  const styleText=Array.from(document.styleSheets).map(sheet=>{ try{return Array.from(sheet.cssRules).map(rule=>rule.cssText).join('
+');}catch(e){return '';} }).join('
+');
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${node.offsetWidth}" height="${node.offsetHeight}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>${styleText}</style>${wrapper.innerHTML}</div></foreignObject></svg>`;
   const img=new Image();
   const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
@@ -614,7 +650,7 @@ async function downloadPNG(){
     },'image/png');
   };
   img.onerror=()=>{
-    alert('PNG-экспорт не сработал. После публикации через GitHub Pages должен заработать через html2canvas.');
+    alert('PNG-экспорт не сработал.');
     URL.revokeObjectURL(url);
   };
   img.src=url;
@@ -635,8 +671,6 @@ function bindGlobalUI(){
   document.addEventListener('click',e=>{ const btn=e.target.closest('.help-btn'); if(btn && btn.closest('summary')){ e.preventDefault(); e.stopPropagation(); openHelp(btn.dataset.helpTitle||'Подсказка',btn.dataset.helpText||'',btn.dataset.helpImage||''); } });
   document.addEventListener('mousedown',e=>{ const btn=e.target.closest('.help-btn'); if(btn && btn.closest('summary')){ e.preventDefault(); e.stopPropagation(); } });
 }
-
-window.bindGlobalUI = bindGlobalUI;
 
 document.addEventListener('DOMContentLoaded',()=>{
   initStaticUI(); bindGlobalUI();
