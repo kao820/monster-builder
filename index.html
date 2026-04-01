@@ -111,36 +111,12 @@
           <summary><span>Характеристики</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Характеристики" data-help-text="Здесь задаются шесть базовых характеристик. Справа у каждой видно модификатор, а галочка снизу добавляет владение соответствующим спасброском."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
             <div class="stats-editor">
-              <div class="stat-card">
-                <label class="field"><span>СИЛ</span><input id="str" type="number" min="1" max="30" value="10"><small class="hint">Сила</small></label>
-                <div class="derived" id="strMod">+0</div>
-                <label class="check"><input id="saveStr" type="checkbox"> Спасбросок</label>
-              </div>
-              <div class="stat-card">
-                <label class="field"><span>ЛОВ</span><input id="dex" type="number" min="1" max="30" value="10"><small class="hint">Ловкость</small></label>
-                <div class="derived" id="dexMod">+0</div>
-                <label class="check"><input id="saveDex" type="checkbox"> Спасбросок</label>
-              </div>
-              <div class="stat-card">
-                <label class="field"><span>ТЕЛ</span><input id="con" type="number" min="1" max="30" value="10"><small class="hint">Телосложение</small></label>
-                <div class="derived" id="conMod">+0</div>
-                <label class="check"><input id="saveCon" type="checkbox"> Спасбросок</label>
-              </div>
-              <div class="stat-card">
-                <label class="field"><span>ИНТ</span><input id="int" type="number" min="1" max="30" value="10"><small class="hint">Интеллект</small></label>
-                <div class="derived" id="intMod">+0</div>
-                <label class="check"><input id="saveInt" type="checkbox"> Спасбросок</label>
-              </div>
-              <div class="stat-card">
-                <label class="field"><span>МДР</span><input id="wis" type="number" min="1" max="30" value="10"><small class="hint">Мудрость</small></label>
-                <div class="derived" id="wisMod">+0</div>
-                <label class="check"><input id="saveWis" type="checkbox"> Спасбросок</label>
-              </div>
-              <div class="stat-card">
-                <label class="field"><span>ХАР</span><input id="cha" type="number" min="1" max="30" value="10"><small class="hint">Харизма</small></label>
-                <div class="derived" id="chaMod">+0</div>
-                <label class="check"><input id="saveCha" type="checkbox"> Спасбросок</label>
-              </div>
+              <div class="stat-card"><label class="field"><span>СИЛ</span><input id="str" type="number" min="1" max="30" value="10"><small class="hint">Сила</small></label><div class="derived" id="strMod">+0</div><label class="check"><input id="saveStr" type="checkbox"> Спасбросок</label></div>
+              <div class="stat-card"><label class="field"><span>ЛОВ</span><input id="dex" type="number" min="1" max="30" value="10"><small class="hint">Ловкость</small></label><div class="derived" id="dexMod">+0</div><label class="check"><input id="saveDex" type="checkbox"> Спасбросок</label></div>
+              <div class="stat-card"><label class="field"><span>ТЕЛ</span><input id="con" type="number" min="1" max="30" value="10"><small class="hint">Телосложение</small></label><div class="derived" id="conMod">+0</div><label class="check"><input id="saveCon" type="checkbox"> Спасбросок</label></div>
+              <div class="stat-card"><label class="field"><span>ИНТ</span><input id="int" type="number" min="1" max="30" value="10"><small class="hint">Интеллект</small></label><div class="derived" id="intMod">+0</div><label class="check"><input id="saveInt" type="checkbox"> Спасбросок</label></div>
+              <div class="stat-card"><label class="field"><span>МДР</span><input id="wis" type="number" min="1" max="30" value="10"><small class="hint">Мудрость</small></label><div class="derived" id="wisMod">+0</div><label class="check"><input id="saveWis" type="checkbox"> Спасбросок</label></div>
+              <div class="stat-card"><label class="field"><span>ХАР</span><input id="cha" type="number" min="1" max="30" value="10"><small class="hint">Харизма</small></label><div class="derived" id="chaMod">+0</div><label class="check"><input id="saveCha" type="checkbox"> Спасбросок</label></div>
             </div>
           </div>
         </details>
@@ -200,8 +176,8 @@
         <details>
           <summary><span>Особенности</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Особенности" data-help-text="Постоянные свойства монстра: острое зрение, амфибия, сопротивление магии, регенерация и т.п."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary" onclick="addEntry('traits')">+ добавить</button></div>
-            <div id="traitsEditor" class="entries"></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="traits">+ добавить</button></div>
+            <div id="traitsEditor" class="entries compact-list"></div>
           </div>
         </details>
       </section>
@@ -210,8 +186,18 @@
         <details>
           <summary><span>Действия</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Действия" data-help-text="Обычные действия существа в свой ход: мультиатака, укусы, когти, способности с перезарядкой и т.д."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary" onclick="addEntry('actions')">+ добавить</button></div>
-            <div id="actionsEditor" class="entries"></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="actions">+ добавить</button></div>
+            <div id="actionsEditor" class="entries compact-list"></div>
+          </div>
+        </details>
+      </section>
+
+      <section class="panel collapsible">
+        <details>
+          <summary><span>Бонусные действия</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Бонусные действия" data-help-text="Действия, которые монстр может выполнить бонусным действием, если правило даёт ему такую возможность."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
+          <div class="details-body">
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="bonus">+ добавить</button></div>
+            <div id="bonusEditor" class="entries compact-list"></div>
           </div>
         </details>
       </section>
@@ -220,8 +206,8 @@
         <details>
           <summary><span>Реакции</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Реакции" data-help-text="Ответные действия вне своего хода: парирование, контратака, защитный выпад и т.п."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary" onclick="addEntry('reactions')">+ добавить</button></div>
-            <div id="reactionsEditor" class="entries"></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="reactions">+ добавить</button></div>
+            <div id="reactionsEditor" class="entries compact-list"></div>
           </div>
         </details>
       </section>
@@ -230,24 +216,20 @@
         <details>
           <summary><span>Легендарные действия</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Легендарные действия" data-help-text="Доступны в конце хода других существ. Обычно их 3 за раунд, если не указано иное."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary" onclick="addEntry('legendary')">+ добавить</button></div>
-            <label class="field">
-              <span>Описание легендарных действий</span>
-              <textarea id="legendaryDescription" class="auto-grow wide-area" rows="4" placeholder="Монстр может совершить 3 легендарных действия, выбирая из представленных ниже вариантов..."></textarea>
-            </label>
-            <div id="legendaryEditor" class="entries"></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="legendary">+ добавить</button></div>
+            <label class="field"><span>Описание легендарных действий</span><textarea id="legendaryDescription" class="auto-grow wide-area" rows="4" placeholder="Монстр может совершить 3 легендарных действия, выбирая из представленных ниже вариантов..."></textarea></label>
+            <div id="legendaryEditor" class="entries compact-list"></div>
           </div>
         </details>
       </section>
 
       <section class="panel collapsible">
         <details>
-          <summary><span>Логово и регион</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Логово и регион" data-help-text="Эти блоки нужны не всем монстрам. Используй их для логовищных действий и региональных эффектов, если существо действительно работает как важный босс или мифическое чудовище."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
+          <summary><span>Логово</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Логово" data-help-text="Этот блок нужен не всем монстрам. Используй его для логовищных действий важных боссов и чудовищ."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary" onclick="addEntry('lair')">+ логово</button></div>
-            <div id="lairEditor" class="entries"></div>
-            <div class="panel-head-inline action-only top-gap"><button type="button" class="secondary" onclick="addEntry('regional')">+ эффект</button></div>
-            <div id="regionalEditor" class="entries"></div>
+            <label class="field"><span>Описание логова</span><textarea id="lairDescription" class="auto-grow wide-area" rows="4" placeholder="В логове монстр может призывать особые эффекты..."></textarea></label>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="lair">+ добавить</button></div>
+            <div id="lairEditor" class="entries compact-list"></div>
           </div>
         </details>
       </section>
@@ -271,13 +253,7 @@
       <div class="preview-toolbar">
         <div class="toolbar-left"><strong>Предпросмотр</strong> <span class="muted">обновляется автоматически</span></div>
         <div class="toolbar-right">
-          <label class="toolbar-select">
-            <span>Режим</span>
-            <select id="layoutMode">
-              <option value="showcase" selected>Стартер-пак</option>
-              <option value="statblock">Только характеристики</option>
-            </select>
-          </label>
+          <label class="toolbar-select"><span>Режим</span><select id="layoutMode"><option value="showcase" selected>Подробно</option><option value="statblock">Кратко</option></select></label>
           <div class="chip" id="balanceChip">CR ≈ 1/2</div>
           <button type="button" onclick="downloadPNG()">Скачать PNG</button>
           <button type="button" class="secondary" onclick="downloadJSON()">Скачать JSON</button>
@@ -290,15 +266,8 @@
 
       <section id="previewCanvas" class="preview-canvas mode-statblock">
         <div class="showcase-top" id="showcaseTop">
-          <div class="showcase-art">
-            <div class="art-bg"></div>
-            <img id="monsterArt" alt="">
-          </div>
-          <div class="showcase-text">
-            <h2 id="showcaseTitle">Описание</h2>
-            <p id="showcaseDescription"></p>
-            <div class="callout-box" id="calloutBox"><div class="callout-inner" id="showcaseCallout"></div></div>
-          </div>
+          <div class="showcase-art"><div class="art-bg"></div><img id="monsterArt" alt=""></div>
+          <div class="showcase-text"><h2 id="showcaseTitle">Описание</h2><p id="showcaseDescription"></p><div class="callout-box" id="calloutBox"><div class="callout-inner" id="showcaseCallout"></div></div></div>
         </div>
 
         <article class="statblock" id="statblock">
@@ -308,35 +277,35 @@
           <p><strong>Класс Доспеха</strong> <span id="outAC">15</span></p>
           <p><strong>Хиты</strong> <span id="outHP">45</span></p>
           <p><strong>Скорость</strong> <span id="outSpeed">30 фт.</span></p>
-
-          <table class="ability-table">
-            <thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead>
-            <tbody><tr id="abilityRow"><td>10 (+0)</td><td>10 (+0)</td><td>10 (+0)</td><td>10 (+0)</td><td>10 (+0)</td><td>10 (+0)</td></tr></tbody>
-          </table>
+          <table class="ability-table"><thead><tr><th>СИЛ</th><th>ЛОВ</th><th>ТЕЛ</th><th>ИНТ</th><th>МДР</th><th>ХАР</th></tr></thead><tbody><tr id="abilityRow"><td>10 (+0)</td><td>10 (+0)</td><td>10 (+0)</td><td>10 (+0)</td><td>10 (+0)</td><td>10 (+0)</td></tr></tbody></table>
 
           <div class="facts">
-            <p id="outSaves"></p>
-            <p id="outSkills"></p>
-            <p id="outVuln"></p>
-            <p id="outRes"></p>
-            <p id="outImm"></p>
-            <p id="outCondImm"></p>
-            <p id="outSenses"></p>
-            <p id="outLanguages"></p>
-            <p id="outCR"></p>
+            <p id="outSaves"></p><p id="outSkills"></p><p id="outVuln"></p><p id="outRes"></p><p id="outImm"></p><p id="outCondImm"></p><p id="outSenses"></p><p id="outLanguages"></p><p id="outCR"></p>
           </div>
 
           <section id="traitsSection" class="block-section"><h2>Особенности</h2><div id="outTraits"></div></section>
           <section id="actionsSection" class="block-section"><h2>Действия</h2><div id="outActions"></div></section>
+          <section id="bonusSection" class="block-section"><h2>Бонусные действия</h2><div id="outBonus"></div></section>
           <section id="reactionsSection" class="block-section"><h2>Реакции</h2><div id="outReactions"></div></section>
           <section id="legendarySection" class="block-section"><h2>Легендарные действия</h2><p id="outLegendaryDescription"></p><div id="outLegendary"></div></section>
-          <section id="lairSection" class="block-section"><h2>Действия логова</h2><div id="outLair"></div></section>
-          <section id="regionalSection" class="block-section"><h2>Региональные эффекты</h2><div id="outRegional"></div></section>
+          <section id="lairSection" class="block-section"><h2>Действия логова</h2><p id="outLairDescription"></p><div id="outLair"></div></section>
 
           <div class="bottom-rule"></div>
         </article>
       </section>
     </main>
+  </div>
+
+  <div id="entryModal" class="help-modal" hidden>
+    <div class="help-card entry-modal-card">
+      <button class="help-close" type="button" onclick="closeEntryModal()">×</button>
+      <h3 id="entryModalTitle">Новая запись</h3>
+      <div id="entryModalBody"></div>
+      <div class="modal-actions">
+        <button type="button" class="secondary" onclick="closeEntryModal()">Отмена</button>
+        <button type="button" onclick="saveEntryModal()">Сохранить</button>
+      </div>
+    </div>
   </div>
 
   <div id="helpModal" class="help-modal" hidden>
@@ -348,6 +317,8 @@
     </div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="data.js"></script>
   <script src="script.js"></script>
 </body>
