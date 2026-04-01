@@ -5,6 +5,60 @@ let skillEntries=[];
 let uploadedArtData="";
 let modalDraft=null;
 
+let utifLoadPromise=null;
+let h2cLoadPromise=null;
+function loadExternalScript(src){
+  return new Promise((resolve,reject)=>{
+    const existing=[...document.scripts].find(s=>s.src===src);
+    if(existing){
+      if(existing.dataset.loaded==='1' || (src.includes('utif')&&window.UTIF) || (src.includes('html2canvas')&&window.html2canvas)) return resolve();
+      existing.addEventListener('load',()=>resolve(),{once:true});
+      existing.addEventListener('error',()=>reject(new Error('script load failed: '+src)),{once:true});
+      return;
+    }
+    const s=document.createElement('script');
+    s.src=src;
+    s.async=true;
+    s.onload=()=>{s.dataset.loaded='1'; resolve();};
+    s.onerror=()=>reject(new Error('script load failed: '+src));
+    document.head.appendChild(s);
+  });
+}
+async function ensureUTIF(){
+  if(window.UTIF) return window.UTIF;
+  if(!utifLoadPromise){
+    utifLoadPromise=(async()=>{
+      const sources=[
+        'https://cdn.jsdelivr.net/npm/utif@3.1.0/UTIF.min.js',
+        'https://unpkg.com/utif@3.1.0/UTIF.min.js'
+      ];
+      let lastErr=null;
+      for(const src of sources){
+        try{ await loadExternalScript(src); if(window.UTIF) return window.UTIF; }catch(err){ lastErr=err; }
+      }
+      throw lastErr || new Error('UTIF not loaded');
+    })();
+  }
+  return utifLoadPromise;
+}
+async function ensureHtml2Canvas(){
+  if(window.html2canvas) return window.html2canvas;
+  if(!h2cLoadPromise){
+    h2cLoadPromise=(async()=>{
+      const sources=[
+        'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',
+        'https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js'
+      ];
+      let lastErr=null;
+      for(const src of sources){
+        try{ await loadExternalScript(src); if(window.html2canvas) return window.html2canvas; }catch(err){ lastErr=err; }
+      }
+      throw lastErr || new Error('html2canvas not loaded');
+    })();
+  }
+  return h2cLoadPromise;
+}
+
 const SECTION_LABELS={traits:"Особенность",actions:"Действие",bonus:"Бонусное действие",reactions:"Реакция",legendary:"Легендарное действие",lair:"Действие логова"};
 const ENTRY_ROOTS={traits:"traitsEditor",actions:"actionsEditor",bonus:"bonusEditor",reactions:"reactionsEditor",legendary:"legendaryEditor",lair:"lairEditor"};
 
@@ -508,7 +562,7 @@ function updateAll(){
 
 async function tiffFileToDataUrl(file){
   const buffer=await file.arrayBuffer();
-  if(!window.UTIF) throw new Error('UTIF not loaded');
+  const UTIF=await ensureUTIF();
   const ifds=UTIF.decode(buffer);
   if(!ifds || !ifds.length) throw new Error('TIFF decode failed');
   UTIF.decodeImages(buffer, ifds);
@@ -541,7 +595,7 @@ async function handleImageUpload(event){
     updateAll();
   }catch(err){
     console.error(err);
-    alert(isTiff ? 'Не удалось открыть TIFF. После публикации через GitHub Pages это должно работать, если библиотека загрузилась. Пока можно временно конвертировать файл в PNG/WebP.' : 'Не удалось прочитать изображение.');
+    alert(isTiff ? 'Не удалось открыть TIFF. Проверь подключение к интернету или попробуй обновить страницу: декодер TIFF загружается отдельно. Если не поможет, временно конвертируй файл в PNG/WebP.' : 'Не удалось прочитать изображение.');
   }finally{
     event.target.value='';
   }
@@ -569,71 +623,48 @@ async function downloadPNG(){
   updateAll();
   const node=document.getElementById('previewCanvas');
   const filename=`${slugify(text('name')||'monster')}.png`;
-
-  if(window.html2canvas){
-    try{
-      const canvas=await window.html2canvas(node, {
-        backgroundColor: '#0d1220',
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
-        imageTimeout: 0
-      });
-      canvas.toBlob(blob=>{
-        if(blob) triggerDownload(blob, filename);
-        else alert('PNG не удалось собрать.');
-      }, 'image/png');
-      return;
-    }catch(err){
-      console.error('html2canvas export failed, fallback to SVG', err);
+  try{
+    const html2canvas=await ensureHtml2Canvas();
+    const art=document.querySelector('.showcase-art');
+    const artImg=document.getElementById('monsterArt');
+    let restore=null;
+    if(art && artImg && uploadedArtData){
+      restore={
+        bgImage: art.style.backgroundImage,
+        bgRepeat: art.style.backgroundRepeat,
+        bgPosition: art.style.backgroundPosition,
+        bgSize: art.style.backgroundSize,
+        opacity: artImg.style.opacity
+      };
+      art.style.backgroundImage=`url("${uploadedArtData}")`;
+      art.style.backgroundRepeat='no-repeat';
+      art.style.backgroundPosition='center bottom';
+      art.style.backgroundSize='contain';
+      artImg.style.opacity='0';
     }
-  }
-
-  const clone=node.cloneNode(true);
-  const wrapper=document.createElement('div');
-  wrapper.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
-  wrapper.appendChild(clone);
-  const styleText=Array.from(document.styleSheets).map(sheet=>{ try{return Array.from(sheet.cssRules).map(rule=>rule.cssText).join('\n');}catch(e){return '';} }).join('\n');
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${node.offsetWidth}" height="${node.offsetHeight}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>${styleText}</style>${wrapper.innerHTML}</div></foreignObject></svg>`;
-  const img=new Image();
-  const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
-  img.onload=()=>{
-    const canvas=document.createElement('canvas');
-    canvas.width=node.offsetWidth*2;
-    canvas.height=node.offsetHeight*2;
-    const ctx=canvas.getContext('2d');
-    ctx.scale(2,2);
-    ctx.fillStyle='#0d1220';
-    ctx.fillRect(0,0,node.offsetWidth,node.offsetHeight);
-    ctx.drawImage(img,0,0);
+    const canvas=await html2canvas(node, {
+      backgroundColor: '#0d1220',
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      logging: false,
+      imageTimeout: 15000
+    });
+    if(restore){
+      art.style.backgroundImage=restore.bgImage;
+      art.style.backgroundRepeat=restore.bgRepeat;
+      art.style.backgroundPosition=restore.bgPosition;
+      art.style.backgroundSize=restore.bgSize;
+      artImg.style.opacity=restore.opacity;
+    }
     canvas.toBlob(blob=>{
       if(blob) triggerDownload(blob, filename);
-      else alert('PNG не собрался в этом браузере.');
-      URL.revokeObjectURL(url);
-    },'image/png');
-  };
-  img.onerror=()=>{
-    alert('PNG-экспорт не сработал. После публикации через GitHub Pages должен заработать через html2canvas.');
-    URL.revokeObjectURL(url);
-  };
-  img.src=url;
-}
-
-function openHelp(title,text,image){ document.getElementById('helpTitle').textContent=title; document.getElementById('helpText').textContent=text; const img=document.getElementById('helpImage'); if(image){ img.src=image; img.hidden=false; } else { img.hidden=true; img.removeAttribute('src'); } document.getElementById('helpModal').hidden=false; }
-function closeHelp(){ document.getElementById('helpModal').hidden=true; }
-
-function bindGlobalUI(){
-  document.querySelectorAll('input,select,textarea').forEach(el=>{ el.addEventListener('input',updateAll); el.addEventListener('change',updateAll); if(el.tagName==='TEXTAREA') attachAutoGrow(el); });
-  document.getElementById('jsonLoader').addEventListener('change',handleJSONLoad);
-  document.getElementById('imageUpload').addEventListener('change',handleImageUpload);
-  document.querySelectorAll('.help-btn').forEach(btn=>btn.addEventListener('click',()=>openHelp(btn.dataset.helpTitle||'Подсказка',btn.dataset.helpText||'',btn.dataset.helpImage||'')));
-  document.getElementById('helpModal').addEventListener('click',e=>{if(e.target.id==='helpModal') closeHelp();});
-  document.getElementById('entryModal').addEventListener('click',e=>{if(e.target.id==='entryModal') closeEntryModal();});
-  document.querySelectorAll('.entry-add').forEach(btn=>btn.addEventListener('click',()=>openEntryModal(btn.dataset.section)));
-  document.querySelectorAll('.summary-tools .help-btn').forEach(btn=>{ btn.addEventListener('click',e=>{e.preventDefault(); e.stopPropagation();}); btn.addEventListener('mousedown',e=>{e.preventDefault(); e.stopPropagation();}); });
-  document.addEventListener('click',e=>{ const btn=e.target.closest('.help-btn'); if(btn && btn.closest('summary')){ e.preventDefault(); e.stopPropagation(); openHelp(btn.dataset.helpTitle||'Подсказка',btn.dataset.helpText||'',btn.dataset.helpImage||''); } });
-  document.addEventListener('mousedown',e=>{ const btn=e.target.closest('.help-btn'); if(btn && btn.closest('summary')){ e.preventDefault(); e.stopPropagation(); } });
+      else alert('PNG не удалось собрать.');
+    }, 'image/png');
+  }catch(err){
+    console.error('PNG export failed', err);
+    alert('PNG-экспорт не сработал. Проверь, загрузилась ли библиотека html2canvas, и попробуй обновить страницу.');
+  }
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
