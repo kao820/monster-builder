@@ -506,24 +506,123 @@ function updateAll(){
   renderWarnings(validate(scores,pb,estimated)); updateShowcase(); updateLayoutMode();
 }
 
+
+function parseTiffIFD(buffer){
+  const dv = new DataView(buffer);
+  const le = dv.getUint16(0, false) === 0x4949;
+  const order = String.fromCharCode(dv.getUint8(0)) + String.fromCharCode(dv.getUint8(1));
+  if(order !== 'II' && order !== 'MM') throw new Error('Not a TIFF file');
+  const read16 = (o)=>dv.getUint16(o, le);
+  const read32 = (o)=>dv.getUint32(o, le);
+  if(read16(2) !== 42) throw new Error('Invalid TIFF header');
+  const ifdOffset = read32(4);
+  const count = read16(ifdOffset);
+  const tags = {};
+  const typeSizes = {1:1,2:1,3:2,4:4,5:8,6:1,7:1,8:2,9:4,10:8,11:4,12:8,13:4};
+  function readValues(type, count, valueOffset){
+    const size = typeSizes[type] || 1;
+    const total = size * count;
+    const ptr = total <= 4 ? valueOffset : read32(valueOffset);
+    const vals = [];
+    for(let i=0;i<count;i++){
+      const o = ptr + i*size;
+      if(type===3) vals.push(read16(o));
+      else if(type===4 || type===13) vals.push(read32(o));
+      else if(type===1 || type===7) vals.push(dv.getUint8(o));
+      else vals.push(read32(o));
+    }
+    return count===1 ? vals[0] : vals;
+  }
+  for(let i=0;i<count;i++){
+    const o = ifdOffset + 2 + i*12;
+    const tag = read16(o);
+    const type = read16(o+2);
+    const n = read32(o+4);
+    tags[tag] = readValues(type, n, o+8);
+  }
+  return {tags, le};
+}
+
+function decodeRawTiffToDataUrl(buffer){
+  const {tags} = parseTiffIFD(buffer);
+  const width = Number(tags[256]);
+  const height = Number(tags[257]);
+  const bits = Array.isArray(tags[258]) ? tags[258] : [Number(tags[258]||8)];
+  const compression = Number(tags[259] || 1);
+  const photo = Number(tags[262] || 2);
+  const stripOffsets = Array.isArray(tags[273]) ? tags[273] : [Number(tags[273])];
+  const samplesPerPixel = Number(tags[277] || bits.length || 1);
+  const rowsPerStrip = Number(tags[278] || height);
+  const stripByteCounts = Array.isArray(tags[279]) ? tags[279] : [Number(tags[279])];
+  const planar = Number(tags[284] || 1);
+
+  if(!width || !height) throw new Error('TIFF size missing');
+  if(compression !== 1) throw new Error('Unsupported TIFF compression');
+  if(planar !== 1) throw new Error('Unsupported TIFF planar config');
+  if(bits.some(v => Number(v) !== 8)) throw new Error('Only 8-bit TIFF supported');
+
+  const src = new Uint8Array(buffer);
+  const rgba = new Uint8ClampedArray(width * height * 4);
+  let pixelIndex = 0;
+
+  for(let s=0; s<stripOffsets.length; s++){
+    const off = Number(stripOffsets[s]);
+    const count = Number(stripByteCounts[s]);
+    const strip = src.subarray(off, off + count);
+    const rows = Math.min(rowsPerStrip, height - s * rowsPerStrip);
+    const expectedPixels = rows * width;
+    for(let p=0; p<expectedPixels; p++){
+      const base = p * samplesPerPixel;
+      const out = pixelIndex * 4;
+      if(photo === 2){ // RGB
+        rgba[out] = strip[base] ?? 0;
+        rgba[out+1] = strip[base+1] ?? rgba[out];
+        rgba[out+2] = strip[base+2] ?? rgba[out];
+        rgba[out+3] = samplesPerPixel >= 4 ? (strip[base+3] ?? 255) : 255;
+      } else { // grayscale fallback
+        const g = strip[base] ?? 0;
+        rgba[out] = g; rgba[out+1] = g; rgba[out+2] = g; rgba[out+3] = 255;
+      }
+      pixelIndex++;
+    }
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  const imageData = ctx.createImageData(width, height);
+  imageData.data.set(rgba);
+  ctx.putImageData(imageData, 0, 0);
+  return canvas.toDataURL('image/png');
+}
+
 async function tiffFileToDataUrl(file){
-  const buffer=await file.arrayBuffer();
+  const buffer = await file.arrayBuffer();
+  // First try a manual decoder for uncompressed 8-bit TIFFs (works for Photoshop-style sketches).
+  try {
+    return decodeRawTiffToDataUrl(buffer);
+  } catch (manualErr) {
+    console.warn('Manual TIFF decode failed, falling back to UTIF', manualErr);
+  }
+
   if(!window.UTIF) throw new Error('UTIF not loaded');
-  const ifds=UTIF.decode(buffer);
+  const ifds = UTIF.decode(buffer);
   if(!ifds || !ifds.length) throw new Error('TIFF decode failed');
-  const page=ifds[0];
-  if(typeof UTIF.decodeImage==='function'){
+  const page = ifds[0];
+  if(typeof UTIF.decodeImage === 'function'){
     UTIF.decodeImage(buffer, page, ifds);
-  }else if(typeof UTIF.decodeImages==='function'){
+  } else if(typeof UTIF.decodeImages === 'function'){
     UTIF.decodeImages(buffer, ifds);
   }
-  const width=page.width || page.t256?.[0];
-  const height=page.height || page.t257?.[0];
-  if(!width || !height) throw new Error('TIFF size not resolved');
-  const rgba=UTIF.toRGBA8(page);
+  const width = page.width || page.t256 || (page['t256']&&page['t256'][0]);
+  const height = page.height || page.t257 || (page['t257']&&page['t257'][0]);
+  if(!width || !height) throw new Error('TIFF size missing');
+  const rgba = UTIF.toRGBA8(page);
+  if(!(rgba && rgba.length)) throw new Error('TIFF rgba decode failed');
+
   const canvas=document.createElement('canvas');
-  canvas.width=width;
-  canvas.height=height;
+  canvas.width=width; canvas.height=height;
   const ctx=canvas.getContext('2d');
   const imageData=ctx.createImageData(width, height);
   imageData.data.set(new Uint8ClampedArray(rgba));
@@ -546,10 +645,16 @@ async function handleImageUpload(event){
         reader.readAsDataURL(file);
       });
     }
+    await new Promise((resolve)=>{
+      const probe = new Image();
+      probe.onload = ()=>resolve();
+      probe.onerror = ()=>resolve();
+      probe.src = uploadedArtData;
+    });
     updateAll();
   }catch(err){
     console.error(err);
-    alert(isTiff ? 'Не удалось открыть TIFF. Декодер загрузился, но этот файл браузер не смог разобрать. Попробуй ещё раз после обновления страницы; если не поможет, пришли этот TIFF отдельно.' : 'Не удалось прочитать изображение.');
+    alert(isTiff ? 'Не удалось открыть TIFF. Проверь, что декодер TIFF загрузился, или временно конвертируй файл в PNG/WebP.' : 'Не удалось прочитать изображение.');
   }finally{
     event.target.value='';
   }
@@ -573,10 +678,52 @@ function downloadJSON(){ const blob=new Blob([JSON.stringify(collectState(),null
 function loadJSON(){ document.getElementById('jsonLoader').click(); }
 function handleJSONLoad(event){ const file=event.target.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=e=>{ try{ applyState(JSON.parse(e.target.result)); }catch(err){ alert('Не удалось прочитать JSON. Проверь файл.'); console.error(err); } }; reader.readAsText(file,'utf-8'); event.target.value=''; }
 function triggerDownload(blob, filename){ const link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download=filename; document.body.appendChild(link); link.click(); setTimeout(()=>{URL.revokeObjectURL(link.href); link.remove();},700); }
-async function downloadPNG(){
+function applyContainExportStyles(root){
+  const art = root.querySelector('.showcase-art');
+  const img = root.querySelector('#monsterArt');
+  if(!art || !img) return;
+  const srcImg = document.getElementById('monsterArt');
+  const naturalW = (srcImg && srcImg.naturalWidth) || img.naturalWidth || 0;
+  const naturalH = (srcImg && srcImg.naturalHeight) || img.naturalHeight || 0;
+  if(!naturalW || !naturalH) return;
+
+  const rectW = art.clientWidth || art.offsetWidth || parseFloat(getComputedStyle(art).width) || 0;
+  const rectH = art.clientHeight || art.offsetHeight || parseFloat(getComputedStyle(art).height) || 0;
+  if(!rectW || !rectH) return;
+
+  const imgRatio = naturalW / naturalH;
+  const boxRatio = rectW / rectH;
+  let drawW, drawH;
+  if(imgRatio > boxRatio){
+    drawW = rectW;
+    drawH = rectW / imgRatio;
+  } else {
+    drawH = rectH;
+    drawW = rectH * imgRatio;
+  }
+  const left = (rectW - drawW) / 2;
+  const top = rectH - drawH;
+
+  art.style.position = 'relative';
+  art.style.overflow = 'hidden';
+  img.style.position = 'absolute';
+  img.style.inset = 'auto';
+  img.style.width = `${drawW}px`;
+  img.style.height = `${drawH}px`;
+  img.style.maxWidth = 'none';
+  img.style.maxHeight = 'none';
+  img.style.left = `${left}px`;
+  img.style.top = `${top}px`;
+  img.style.objectFit = 'fill';
+}
+
+async function downloadPNG() {
   updateAll();
   const node=document.getElementById('previewCanvas');
   const filename=`${slugify(text('name')||'monster')}.png`;
+  const liveImg = document.getElementById('monsterArt');
+  const savedImgStyle = liveImg ? liveImg.getAttribute('style') || '' : null;
+  if(liveImg) applyContainExportStyles(document);
 
   if(window.html2canvas){
     try{
@@ -588,6 +735,9 @@ async function downloadPNG(){
         logging: false,
         imageTimeout: 0
       });
+      if(liveImg){
+        if(savedImgStyle) liveImg.setAttribute('style', savedImgStyle); else liveImg.removeAttribute('style');
+      }
       canvas.toBlob(blob=>{
         if(blob) triggerDownload(blob, filename);
         else alert('PNG не удалось собрать.');
@@ -595,10 +745,14 @@ async function downloadPNG(){
       return;
     }catch(err){
       console.error('html2canvas export failed, fallback to SVG', err);
+      if(liveImg){
+        if(savedImgStyle) liveImg.setAttribute('style', savedImgStyle); else liveImg.removeAttribute('style');
+      }
     }
   }
 
   const clone=node.cloneNode(true);
+  applyContainExportStyles(clone);
   const wrapper=document.createElement('div');
   wrapper.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
   wrapper.appendChild(clone);
@@ -615,6 +769,9 @@ async function downloadPNG(){
     ctx.fillStyle='#0d1220';
     ctx.fillRect(0,0,node.offsetWidth,node.offsetHeight);
     ctx.drawImage(img,0,0);
+    if(liveImg){
+      if(savedImgStyle) liveImg.setAttribute('style', savedImgStyle); else liveImg.removeAttribute('style');
+    }
     canvas.toBlob(blob=>{
       if(blob) triggerDownload(blob, filename);
       else alert('PNG не собрался в этом браузере.');
@@ -622,7 +779,10 @@ async function downloadPNG(){
     },'image/png');
   };
   img.onerror=()=>{
-    alert('PNG-экспорт не сработал. После публикации через GitHub Pages должен заработать через html2canvas.');
+    if(liveImg){
+      if(savedImgStyle) liveImg.setAttribute('style', savedImgStyle); else liveImg.removeAttribute('style');
+    }
+    alert('PNG-экспорт не сработал.');
     URL.revokeObjectURL(url);
   };
   img.src=url;
