@@ -18,7 +18,7 @@ html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-f
 button{appearance:none;border:none;border-radius:12px;padding:11px 14px;font:inherit;font-weight:800;cursor:pointer;color:white;background:linear-gradient(180deg,#c7523f,#8d2d21)}button.secondary{background:rgba(255,255,255,.08);color:var(--text)}button.help-btn{width:18px;height:18px;min-width:18px;padding:0;border-radius:50%;background:rgba(255,255,255,.14);color:white;font-size:12px;line-height:1;font-weight:900;display:inline-grid;place-items:center}
 .chip{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.1);font-weight:800;white-space:nowrap}
 .warnings{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}.warning{border-radius:12px;padding:10px 12px;font-size:14px}.warning.good{background:rgba(34,92,54,.22);border:1px solid rgba(34,92,54,.55)}.warning.warn{background:rgba(142,92,8,.18);border:1px solid rgba(142,92,8,.5)}.warning.bad{background:rgba(130,27,45,.22);border:1px solid rgba(130,27,45,.55)}
-.preview-canvas{width:100%;display:grid;gap:18px}.preview-canvas.mode-statblock{grid-template-columns:minmax(760px,920px);justify-content:center}.preview-canvas.mode-showcase{grid-template-columns:minmax(760px,1120px);justify-content:center}
+.preview-canvas{width:100%;display:grid;gap:0}.preview-canvas.mode-statblock{grid-template-columns:minmax(760px,920px);justify-content:center}.preview-canvas.mode-showcase{grid-template-columns:minmax(760px,1120px);justify-content:center}
 .showcase-top{display:none;background:#e8dfca;box-shadow:0 18px 40px rgba(0,0,0,.34)}.preview-canvas.mode-showcase .showcase-top{display:grid;grid-template-columns:minmax(320px,420px) 1fr}.showcase-art{position:relative;min-height:420px;overflow:hidden;background:#e9e1cc}.art-bg{position:absolute;inset:0;background:radial-gradient(circle at 30% 20%,rgba(206,181,120,.26),transparent 26%),radial-gradient(circle at 62% 45%,rgba(160,190,106,.17),transparent 20%),radial-gradient(circle at 78% 80%,rgba(120,88,42,.12),transparent 20%),linear-gradient(180deg,#f2eddd 0%,#eae1c9 100%)}#monsterArt{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:center bottom}
 .showcase-text{padding:22px 26px;background:#efe7d4;color:#1f1812;display:flex;flex-direction:column;gap:14px}.showcase-text h2{margin:0;font-size:38px;font-family:Georgia,"Times New Roman",serif}.showcase-text p{margin:0;font-size:18px;line-height:1.45}.callout-box{background:#e0d1b4;padding:14px;border-top:3px solid #1f1812;border-bottom:3px solid #1f1812;font-weight:700}.callout-box,.callout-inner{white-space:pre-wrap}
 .statblock{background:var(--paper);color:var(--ink);width:100%;padding:16px 22px 18px;font-family:Georgia,"Times New Roman",serif;box-shadow:0 24px 50px rgba(0,0,0,.35)}.top-rule,.bottom-rule{height:6px;background:linear-gradient(90deg,rgba(0,0,0,0) 0%,#c6a548 3%,#c6a548 97%,rgba(0,0,0,0) 100%);position:relative}.top-rule::after{content:"";position:absolute;left:2%;right:2%;top:2px;border-top:2px solid var(--rule)}.bottom-rule::after{display:none}
@@ -41,3 +41,43 @@ button{appearance:none;border:none;border-radius:12px;padding:11px 14px;font:inh
 .multiattack-row{display:grid;grid-template-columns:minmax(0,1fr) 140px auto;gap:10px;align-items:end}
 .multiattack-row .count{max-width:140px}
 @media (max-width:900px){.multiattack-row{grid-template-columns:1fr}}
+
+
+/* Final unify top detailed block with the card */
+.preview-canvas,
+.preview-canvas.mode-showcase,
+.preview-canvas.mode-statblock {
+  gap: 0 !important;
+}
+
+.showcase-top {
+  margin: 0 !important;
+  box-shadow: none !important;
+  background: #ece5d3 !important;
+}
+
+.preview-canvas.mode-showcase .showcase-top {
+  gap: 0 !important;
+  background: #ece5d3 !important;
+}
+
+.showcase-art,
+.showcase-text,
+.art-bg,
+.callout-box {
+  background: #ece5d3 !important;
+}
+
+.art-bg {
+  background-image: none !important;
+}
+
+.preview-canvas.mode-showcase .statblock {
+  margin-top: 0 !important;
+  box-shadow: none !important;
+}
+
+#previewCanvas > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
