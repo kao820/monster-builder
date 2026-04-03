@@ -166,7 +166,7 @@ function validate(scores,pb,estimated){
   if(dpr>selectedCR.dprMax+10) warnings.push({level:'warn', text:`Средний урон за раунд выше типичного для CR ${selectedCR.cr}.`});
   if(atk>selectedCR.atk+3) warnings.push({level:'warn', text:`Бонус атаки заметно выше типичного для CR ${selectedCR.cr}.`});
   if(dc>selectedCR.dc+2) warnings.push({level:'warn', text:`Сложность спасброска заметно выше типичной для CR ${selectedCR.cr}.`});
-  if(text('balanceNote')) warnings.push({level:'good', text:`Учтено примечание: ${text('balanceNote')}`});
+  if(text('balanceNote')) warnings.push({level:'good', text:`Учтено примечние: ${text('balanceNote')}`});
   return warnings;
 }
 function renderWarnings(items){ const root=document.getElementById('warnings'); root.innerHTML=''; items.forEach(item=>{const div=document.createElement('div'); div.className=`warning ${item.level}`; div.textContent=item.text; root.appendChild(div);}); }
@@ -317,7 +317,27 @@ function closeEntryModal(){ modalDraft=null; document.getElementById('entryModal
 function getModalRef(path){ const parts=path.split('.'); let ref=modalDraft.entry; while(parts.length>1){ ref=ref[parts.shift()]; } return {ref,key:parts[0]}; }
 function setModalPath(path, value, rerender=false){ const {ref,key}=getModalRef(path); ref[key]=value; if(path==='kind' && value==='attack') ensureAttackShape(modalDraft.entry); if(path==='kind' && value==='multiattack') ensureMultiattackShape(modalDraft.entry); syncEntryShape(modalDraft.entry); if(modalDraft.entry.kind==='attack') syncAttackDerived(modalDraft.entry); if(rerender) renderEntryModal(false); else updateModalPreview(); }
 function modalSelectOptions(items, valueKey='id', labelKey='label', selected=''){ return items.map(item=>`<option value="${escapeAttr(item[valueKey])}" ${item[valueKey]===selected?'selected':''}>${escapeHtml(item[labelKey])}</option>`).join(''); }
-function updateModalPreview(){ if(!modalDraft) return; syncEntryShape(modalDraft.entry); if(modalDraft.entry.kind==='attack') syncAttackDerived(modalDraft.entry); const note=document.getElementById('modalAttackPreview'); if(note){ let body=''; if(modalDraft.entry.kind==='attack') body=formatAttackBody(modalDraft.entry); else if(modalDraft.entry.kind==='multiattack') body=formatMultiattackBody(modalDraft.entry); else body=escapeHtml((modalDraft.entry.text||'').trim()).replace(/\n/g,'<br>'); note.innerHTML=`<em>${escapeHtml(formatEntryTitle(modalDraft.entry))}.</em> ${body}`; } }
+function updateModalPreview(){
+  if(!modalDraft) return;
+  syncEntryShape(modalDraft.entry);
+  if(modalDraft.entry.kind==='attack') syncAttackDerived(modalDraft.entry);
+  const note=document.getElementById('modalAttackPreview');
+  if(note){
+    let body='';
+    if(modalDraft.entry.kind==='attack') body=formatAttackBody(modalDraft.entry);
+    else if(modalDraft.entry.kind==='multiattack') body=formatMultiattackBody(modalDraft.entry);
+    else body=escapeHtml((modalDraft.entry.text||'').trim()).replace(/\n/g,'<br>');
+    note.innerHTML=`<em>${escapeHtml(formatEntryTitle(modalDraft.entry))}.</em> ${body}`;
+  }
+  const titlePreview=document.getElementById('modalTextPreviewTitle');
+  const textPreview=document.getElementById('modalTextPreview');
+  if(titlePreview && textPreview){
+    const title=(modalDraft.entry.title||'').trim() || 'Без названия';
+    const body=(modalDraft.entry.text||'').trim() || 'Тут появится превью текста.';
+    titlePreview.textContent=title;
+    textPreview.innerHTML=escapeHtml(body).replace(/\n/g,'<br>');
+  }
+}
 
 function renderEntryModal(resetScroll=true){
   if(!modalDraft) return;
@@ -396,7 +416,17 @@ function renderEntryModal(resetScroll=true){
     const ph=freePlaceholders[section] || {title: SECTION_LABELS[section], text:''};
     html+=`
       <label class="field span-2"><span>Название</span><input data-path="title" type="text" value="${escapeAttr(entry.title)}" placeholder="${escapeAttr(ph.title)}"></label>
-      <label class="field span-2"><span>Описание</span><textarea data-path="text" rows="6" class="auto-grow" placeholder="${escapeHtml(ph.text)}">${escapeHtml(entry.text||'')}</textarea></label>
+      <div class="editor-split span-2">
+        <label class="field">
+          <span>Текстовый редактор</span>
+          <textarea data-path="text" rows="10" class="auto-grow entry-editor-text" placeholder="${escapeHtml(ph.text)}">${escapeHtml(entry.text||'')}</textarea>
+        </label>
+        <div class="text-preview-card">
+          <div class="text-preview-head">Предпросмотр</div>
+          <div class="text-preview-title" id="modalTextPreviewTitle">${escapeHtml((entry.title||'').trim()||'Без названия')}</div>
+          <div class="text-preview-body" id="modalTextPreview">${escapeHtml((entry.text||'').trim()||'Тут появится превью текста.').replace(/\n/g,'<br>')}</div>
+        </div>
+      </div>
     `;
   }
   html+='</div>';
@@ -492,6 +522,17 @@ function updateAll(){
       acInput.disabled=true;
     } else {
       acInput.disabled=false;
+    }
+  }
+  const autoPassive=document.getElementById('autoPassivePerception');
+  const passiveInput=document.getElementById('passivePerception');
+  if(autoPassive && passiveInput){
+    if(autoPassive.checked){
+      const passiveExpected=10+mod(scores.wis)+skillEntries.filter(x=>x.skillId==='perception').reduce((acc,x)=>acc+pb*Number(x.prof),0);
+      passiveInput.value=passiveExpected;
+      passiveInput.disabled=true;
+    } else {
+      passiveInput.disabled=false;
     }
   }
   document.getElementById('outName').textContent=text('name')||'Монстр';
@@ -697,7 +738,7 @@ async function handleImageUpload(event){
   }
 }
 function collectState(){
-  const ids=['name','size','type','subtype','alignment','cr','ac','hp','hitDice','autoHitDice','autoAC','speedWalk','speedClimb','speedSwim','speedFly','speedBurrow','speedSpecial','str','dex','con','int','wis','cha','saveStr','saveDex','saveCon','saveInt','saveWis','saveCha','senseBlindsight','senseDarkvision','senseTremorsense','senseTruesight','passivePerception','languages','dpr','attackBonus','saveDc','balanceNote','legendaryDescription','lairDescription','layoutMode','description','calloutText'];
+  const ids=['name','size','type','subtype','alignment','cr','ac','hp','hitDice','autoHitDice','autoAC','speedWalk','speedClimb','speedSwim','speedFly','speedBurrow','speedSpecial','str','dex','con','int','wis','cha','saveStr','saveDex','saveCon','saveInt','saveWis','saveCha','senseBlindsight','senseDarkvision','senseTremorsense','senseTruesight','passivePerception','autoPassivePerception','languages','dpr','attackBonus','saveDc','balanceNote','legendaryDescription','lairDescription','layoutMode','description','calloutText'];
   const state={fields:{}, tags:{}, entries:deepClone(entryState), skillEntries:deepClone(skillEntries), art:uploadedArtData};
   ids.forEach(id=>{const el=document.getElementById(id); if(el) state.fields[id]=el.type==='checkbox'?el.checked:el.value;});
   ['resistances','immunities','vulnerabilities','conditionImmunities'].forEach(key=>state.tags[key]=checkedValues(key));
