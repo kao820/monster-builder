@@ -10,11 +10,11 @@ const ENTRY_ROOTS={traits:"traitsEditor",actions:"actionsEditor",bonus:"bonusEdi
 
 function sortRu(arr, keyFn=(x)=>x){ return [...arr].sort((a,b)=>keyFn(a).localeCompare(keyFn(b),'ru')); }
 function uid(){ return crypto.randomUUID?crypto.randomUUID():String(Date.now()+Math.random()); }
-function escapeHtml(str){return String(str??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;");}
+function escapeHtml(str){return String(str??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"','&quot;');}
 function escapeAttr(str){return escapeHtml(str);} 
 function text(id){const el=document.getElementById(id);return String((el&&el.value)||"").trim();}
-function num(id){const el=document.getElementById(id);return Number((el&&el.value)||0);}
-function mod(score){return Math.floor((score-10)/2);}
+function num(id){const el=document.getElementById(id);return Number((el&&el.value)||0);} 
+function mod(score){return Math.floor((score-10)/2);} 
 function fmtSigned(n){return `${n>=0?'+':''}${n}`;}
 function getCRRow(cr){return DATA.crTable.find(x=>x.cr===cr)||DATA.crTable[0];}
 function getCurrentPB(){return getCRRow(text('cr')).pb;}
@@ -24,6 +24,9 @@ function deepClone(x){return JSON.parse(JSON.stringify(x));}
 function capitalize(str){ str=String(str||''); return str?str[0].toUpperCase()+str.slice(1):str; }
 
 function defaultFreeEntry(section){
+  // По умолчанию свободные записи не имеют заполненного текста, чтобы
+  // пользователю показывались только подсказки (placeholder) в полях модального окна.
+  // Текст примеров задаётся в модальном окне через атрибут placeholder.
   return {id:uid(), kind:'free', section, title:'', text:''};
 }
 function defaultAttackEntry(section){
@@ -138,7 +141,7 @@ function renderSkills(){
 
 function getScores(){ return {str:num('str'),dex:num('dex'),con:num('con'),int:num('int'),wis:num('wis'),cha:num('cha')}; }
 function buildTypeLine(){ const size=text('size'), type=text('type'), subtype=text('subtype'), alignment=text('alignment'); const core=subtype?`${size}, ${type} (${subtype})`:`${size}, ${type}`; return `${core}, ${alignment}`; }
-function buildSpeedLine(){ const parts=[]; [["speedWalk",""],["speedBurrow","рытьё"],["speedClimb","лазание"],["speedFly","полёт"],["speedSwim","плавание"]].forEach(([id,label])=>{const v=num(id); if(v>0) parts.push(label?`${label} ${v} фт.`:`${v} фт.`);}); const special=text('speedSpecial'); if(special) parts.push(special); return parts.length?parts.join(', '):'—'; }
+function buildSpeedLine(){ const parts=[]; [["speedWalk",""] ,["speedBurrow","рытьё"],["speedClimb","лазание"],["speedFly","полёт"],["speedSwim","плавание"]].forEach(([id,label])=>{const v=num(id); if(v>0) parts.push(label?`${label} ${v} фт.`:`${v} фт.`);}); const special=text('speedSpecial'); if(special) parts.push(special); return parts.length?parts.join(', '):'—'; }
 function autoHitDiceExpression(size,hp,conScore){ const die=DATA.hitDieBySize[size]||8; const avgDie={4:2.5,6:3.5,8:4.5,10:5.5,12:6.5,20:10.5}[die]||4.5; const conMod=mod(conScore); const perDie=Math.max(1,avgDie+conMod); const diceCount=Math.max(1,Math.floor(hp/perDie)); const bonus=diceCount*conMod; return bonus===0?`${diceCount}к${die}`:`${diceCount}к${die} ${bonus>0?'+':'-'} ${Math.abs(bonus)}`; }
 function buildSaves(scores,pb){ const labels={saveStr:'Сил',saveDex:'Лов',saveCon:'Тел',saveInt:'Инт',saveWis:'Мдр',saveCha:'Хар'}; const map={saveStr:'str',saveDex:'dex',saveCon:'con',saveInt:'int',saveWis:'wis',saveCha:'cha'}; const out=[]; Object.keys(labels).forEach(id=>{if(document.getElementById(id).checked) out.push(`${labels[id]} ${fmtSigned(mod(scores[map[id]])+pb)}`);}); return out; }
 function buildSkillsLine(scores,pb){ return skillEntries.map(entry=>{const skill=DATA.skills.find(s=>s.id===entry.skillId); const bonus=mod(scores[skill.ability])+pb*Number(entry.prof); return `${skill.label} ${fmtSigned(bonus)}`;}); }
@@ -381,9 +384,19 @@ function renderEntryModal(resetScroll=true){
       <div class="preview-note span-2"><strong>Черновик:</strong><div id="modalAttackPreview" class="attack-preview-inline"><em>${escapeHtml(formatEntryTitle(entry))}.</em> ${formatMultiattackBody(entry)}</div></div>
     `;
   } else {
+    // placeholders for free-form entries (traits, bonus, reactions, legendary, lair, actions)
+    const freePlaceholders={
+      traits:{title:'Острый слух и нюх', text:'Монстр совершает проверки Мудрости (Восприятие), основанные на слухе и нюхе, с преимуществом.'},
+      bonus:{title:'Телепортация', text:'Монстр телепортируется до 30 фт. к видимой точке.'},
+      reactions:{title:'Парирование', text:'Монстр добавляет +2 к КД против одной атаки, если видит атакующего.'},
+      legendary:{title:'Атака хвостом', text:'Монстр совершает одну атаку хвостом.'},
+      lair:{title:'Сотрясение земли', text:'Монстр вызывает землетрясение в радиусе 20 фт. вокруг себя.'},
+      actions:{title:'Удар когтями', text:'Монстр наносит быстрый удар когтями, нанося колющий урон.'}
+    };
+    const ph=freePlaceholders[section] || {title: SECTION_LABELS[section], text:''};
     html+=`
-      <label class="field span-2"><span>Название</span><input data-path="title" type="text" value="${escapeAttr(entry.title)}" placeholder="${SECTION_LABELS[section]}"></label>
-      <label class="field span-2"><span>Описание</span><textarea data-path="text" rows="6" class="auto-grow">${escapeHtml(entry.text||'')}</textarea></label>
+      <label class="field span-2"><span>Название</span><input data-path="title" type="text" value="${escapeAttr(entry.title)}" placeholder="${escapeAttr(ph.title)}"></label>
+      <label class="field span-2"><span>Описание</span><textarea data-path="text" rows="6" class="auto-grow" placeholder="${escapeHtml(ph.text)}">${escapeHtml(entry.text||'')}</textarea></label>
     `;
   }
   html+='</div>';
@@ -445,17 +458,42 @@ function updateShowcase(){
 function updateLayoutMode(){
   const mode=text('layoutMode');
   const root=document.getElementById('previewCanvas');
-  root.classList.remove('mode-showcase','mode-statblock'); root.classList.add(mode==='showcase'?'mode-showcase':'mode-statblock');
+  // remove previous classes
+  root.classList.remove('mode-showcase','mode-statblock');
+  // determine primary mode classes
+  if(mode==='showcase'){
+    root.classList.add('mode-showcase');
+  } else {
+    root.classList.add('mode-statblock');
+  }
   document.getElementById('showcaseTop').style.display=mode==='showcase'?'grid':'none';
   const img=document.getElementById('monsterArt');
   if(uploadedArtData) img.src=uploadedArtData; else img.removeAttribute('src');
   document.querySelector('.showcase-art').style.display=(uploadedArtData||mode==='showcase')?'block':'none';
+  // toggle two-column class on statblock for statblockTwo mode
+  const statblock=document.querySelector('.statblock');
+  if(statblock){ statblock.classList.toggle('two-columns', mode==='statblockTwo'); }
 }
 
 function updateAll(){
   const scores=getScores(), pb=getCurrentPB();
+  // Auto-calculate hit dice
   if(document.getElementById('autoHitDice').checked) document.getElementById('hitDice').value=autoHitDiceExpression(text('size'), num('hp'), scores.con);
+  // Auto-calculate modifiers
   ['str','dex','con','int','wis','cha'].forEach(key=>document.getElementById(`${key}Mod`).textContent=fmtSigned(mod(scores[key])));
+  // Auto AC: if checkbox is checked, compute natural armor as 10 + PB + max(0, Dex mod)
+  const acInput=document.getElementById('ac');
+  const autoAC=document.getElementById('autoAC');
+  if(autoAC){
+    if(autoAC.checked){
+      const dexMod=Math.max(0, mod(scores.dex));
+      const newAc=10 + pb + dexMod;
+      acInput.value=newAc;
+      acInput.disabled=true;
+    } else {
+      acInput.disabled=false;
+    }
+  }
   document.getElementById('outName').textContent=text('name')||'Монстр';
   document.getElementById('outTypeLine').textContent=buildTypeLine();
   document.getElementById('outAC').textContent=num('ac');
@@ -505,7 +543,6 @@ function updateAll(){
   const estimated=estimateBalancedCR(); document.getElementById('balanceChip').textContent=`CR ≈ ${estimated.final.cr}`;
   renderWarnings(validate(scores,pb,estimated)); updateShowcase(); updateLayoutMode();
 }
-
 
 function parseTiffIFD(buffer){
   const dv = new DataView(buffer);
@@ -660,7 +697,7 @@ async function handleImageUpload(event){
   }
 }
 function collectState(){
-  const ids=['name','size','type','subtype','alignment','cr','ac','hp','hitDice','autoHitDice','speedWalk','speedClimb','speedSwim','speedFly','speedBurrow','speedSpecial','str','dex','con','int','wis','cha','saveStr','saveDex','saveCon','saveInt','saveWis','saveCha','senseBlindsight','senseDarkvision','senseTremorsense','senseTruesight','passivePerception','languages','dpr','attackBonus','saveDc','balanceNote','legendaryDescription','lairDescription','layoutMode','description','calloutText'];
+  const ids=['name','size','type','subtype','alignment','cr','ac','hp','hitDice','autoHitDice','autoAC','speedWalk','speedClimb','speedSwim','speedFly','speedBurrow','speedSpecial','str','dex','con','int','wis','cha','saveStr','saveDex','saveCon','saveInt','saveWis','saveCha','senseBlindsight','senseDarkvision','senseTremorsense','senseTruesight','passivePerception','languages','dpr','attackBonus','saveDc','balanceNote','legendaryDescription','lairDescription','layoutMode','description','calloutText'];
   const state={fields:{}, tags:{}, entries:deepClone(entryState), skillEntries:deepClone(skillEntries), art:uploadedArtData};
   ids.forEach(id=>{const el=document.getElementById(id); if(el) state.fields[id]=el.type==='checkbox'?el.checked:el.value;});
   ['resistances','immunities','vulnerabilities','conditionImmunities'].forEach(key=>state.tags[key]=checkedValues(key));
@@ -756,7 +793,7 @@ async function downloadPNG() {
   const wrapper=document.createElement('div');
   wrapper.setAttribute('xmlns','http://www.w3.org/1999/xhtml');
   wrapper.appendChild(clone);
-  const styleText=Array.from(document.styleSheets).map(sheet=>{ try{return Array.from(sheet.cssRules).map(rule=>rule.cssText).join('\n');}catch(e){return '';} }).join('\n');
+  const styleText=Array.from(document.styleSheets).map(sheet=>{ try{return Array.from(sheet.cssRules).map(rule=>rule.cssText).join('\n');}catch(e){return ''; } }).join('\n');
   const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${node.offsetWidth}" height="${node.offsetHeight}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml"><style>${styleText}</style>${wrapper.innerHTML}</div></foreignObject></svg>`;
   const img=new Image();
   const url=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml;charset=utf-8'}));
@@ -815,4 +852,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   addSkill({skillId:'perception', prof:1});
   renderAllEntryLists();
   updateAll();
+  // обработчик сворачивания боковой панели
+  const collapseBtn=document.getElementById('collapseBtn');
+  if(collapseBtn){
+    collapseBtn.addEventListener('click',()=>{
+      const app=document.querySelector('.app');
+      if(app){
+        app.classList.toggle('sidebar-collapsed');
+      }
+    });
+  }
 });
