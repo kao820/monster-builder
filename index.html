@@ -61,7 +61,7 @@
                 <div class="inline-row">
                   <!-- начальное значение установлено на 12, но будет вычислено автоматически -->
                   <input id="ac" type="number" min="1" max="40" value="12">
-                  <label class="mini-check"><input id="autoAC" type="checkbox" checked> считать автоматически</label>
+                  <label class="mini-check auto-flag"><input id="autoAC" type="checkbox" checked> авто</label>
                 </div>
               </label>
 
@@ -74,7 +74,7 @@
                 <span>Кость хитов <button class="help-btn" type="button" data-help-title="Кость хитов" data-help-text="Размер определяет тип кости хитов, а количество костей можно черново вывести из хитов и Телосложения. При желании автозаполнение можно отключить и вписать значение вручную.">?</button></span>
                 <div class="inline-row">
                   <input id="hitDice" type="text" placeholder="6к8 + 18">
-                  <label class="mini-check"><input id="autoHitDice" type="checkbox" checked> считать автоматически</label>
+                  <label class="mini-check auto-flag"><input id="autoHitDice" type="checkbox" checked> авто</label>
                 </div>
               </label>
 
@@ -182,7 +182,7 @@
               <label class="field"><span>Тёмное зрение</span><input id="senseDarkvision" type="number" min="0" value="0"></label>
               <label class="field"><span>Чувство вибрации</span><input id="senseTremorsense" type="number" min="0" value="0"></label>
               <label class="field"><span>Истинное зрение</span><input id="senseTruesight" type="number" min="0" value="0"></label>
-              <label class="field"><span>Пассивное Восприятие</span><input id="passivePerception" type="number" min="0" value="10"></label>
+              <label class="field"><span>Пассивное Восприятие</span><input id="passivePerception" type="number" min="0" value="10"><label class="mini-check auto-flag"><input id="autoPassivePerception" type="checkbox" checked> авто</label></label>
               <label class="field"><span>Языки</span><input id="languages" type="text" placeholder="Общий, Драконий, телепатия 120 фт."></label>
             </div>
           </div>
@@ -238,7 +238,7 @@
         <details>
           <summary><span>Легендарные действия</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Легендарные действия" data-help-text="Доступны в конце хода других существ. Обычно их 3 за раунд, если не указано иное."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="legendary">+ добавить</button></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="legendary">+ дбавить</button></div>
             <label class="field"><span>Описание легендарных действий</span><textarea id="legendaryDescription" class="auto-grow wide-area" rows="4" placeholder="Монстр может совершить 3 легендарных действия, выбирая из представленных ниже вариантов..."></textarea></label>
             <div id="legendaryEditor" class="entries compact-list"></div>
           </div>
@@ -288,8 +288,6 @@
           <button type="button" class="secondary" onclick="downloadJSON()">Скачать JSON</button>
           <button type="button" class="secondary" onclick="loadJSON()">Загрузить JSON</button>
           <input type="file" id="jsonLoader" accept="application/json" hidden>
-          <!-- кнопка сворачивания предпросмотра -->
-          <button type="button" class="secondary" id="togglePreview">Свернуть</button>
         </div>
       </div>
 
