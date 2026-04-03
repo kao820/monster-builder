@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Конструктор монстров DnD 5e — RU</title>
   <link rel="stylesheet" href="style.css">
+  <!-- добавляем фавиконку -->
+  <link rel="icon" href="logo.png" type="image/png">
 </head>
 <body>
   <div class="app">
@@ -12,7 +14,11 @@
       <div class="sidebar-header">
         <h1>Конструктор монстра</h1>
         <p>Локальный редактор в духе DnD 5e</p>
+        <!-- Кнопка сворачивания/разворачивания боковой панели -->
+        <button id="collapseBtn" class="collapse-btn" type="button" title="Свернуть/развернуть"><span></span></button>
       </div>
+      <!-- Контейнер для всех форм. При сворачивании он скрывается -->
+      <div class="sidebar-content">
 
       <section class="panel collapsible">
         <details>
@@ -49,9 +55,14 @@
                 <select id="cr"></select>
               </label>
 
+              <!-- Обновленный блок КД с автозаполнением -->
               <label class="field">
-                <span>КД <button class="help-btn" type="button" data-help-title="Класс Доспеха" data-help-text="КД отражает, насколько трудно попасть по существу. Обычно зависит от брони, природного доспеха, ловкости и магических эффектов.">?</button></span>
-                <input id="ac" type="number" min="1" max="40" value="15">
+                <span>КД <button class="help-btn" type="button" data-help-title="Класс Доспеха" data-help-text="КД природного доспеха считается как 10 + бонус мастерства + модификатор Ловкости (не ниже 0). Сними галочку, чтобы вписать своё значение.">?</button></span>
+                <div class="inline-row">
+                  <!-- начальное значение установлено на 12, но будет вычислено автоматически -->
+                  <input id="ac" type="number" min="1" max="40" value="12">
+                  <label class="mini-check"><input id="autoAC" type="checkbox" checked> считать автоматически</label>
+                </div>
               </label>
 
               <label class="field">
@@ -90,6 +101,8 @@
         </details>
       </section>
 
+      <!-- Следующие секции остаются без изменений -->
+      <!-- Скорость -->
       <section class="panel collapsible">
         <details>
           <summary><span>Скорость</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Скорость" data-help-text="Заполняй только нужные типы передвижения. Ходьба — базовая скорость. Полёт, плавание, лазание и рытьё добавляются по необходимости. В поле «Особое» можно указать парение и другие примечания."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -106,6 +119,7 @@
         </details>
       </section>
 
+      <!-- Характеристики -->
       <section class="panel collapsible">
         <details>
           <summary><span>Характеристики</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Характеристики" data-help-text="Здесь задаются шесть базовых характеристик. Справа у каждой видно модификатор, а галочка снизу добавляет владение соответствующим спасброском."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -122,6 +136,7 @@
         </details>
       </section>
 
+      <!-- Навыки -->
       <section class="panel collapsible">
         <details>
           <summary><span>Навыки</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Навыки" data-help-text="Добавляй только те навыки, в которых у монстра есть владение. «эксп.» — это экспертиза, то есть двойной бонус мастерства."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -132,6 +147,7 @@
         </details>
       </section>
 
+      <!-- Сопротивления и иммунитеты -->
       <section class="panel accordion collapsible">
         <details>
           <summary><span>Сопротивления и иммунитеты</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Сопротивления и иммунитеты" data-help-text="Раскрывай только нужные блоки и отмечай подходящие типы урона и состояния. Если у монстра этого нет — ничего выбирать не нужно."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -156,6 +172,7 @@
         </details>
       </section>
 
+      <!-- Чувства и языки -->
       <section class="panel collapsible">
         <details>
           <summary><span>Чувства и языки</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Чувства и языки" data-help-text="Чувства описывают особые способы восприятия: тёмное зрение, истинное зрение и т.п. Пассивное Восприятие обычно равно 10 + модификатор Мудрости + владение Восприятием, если оно есть."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -172,6 +189,7 @@
         </details>
       </section>
 
+      <!-- Особенности -->
       <section class="panel collapsible">
         <details>
           <summary><span>Особенности</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Особенности" data-help-text="Постоянные свойства монстра: острое зрение, амфибия, сопротивление магии, регенерация и т.п."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -182,6 +200,7 @@
         </details>
       </section>
 
+      <!-- Действия -->
       <section class="panel collapsible">
         <details>
           <summary><span>Действия</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Действия" data-help-text="Обычные действия существа в свой ход: мультиатака, укусы, когти, способности с перезарядкой и т.д."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -192,6 +211,7 @@
         </details>
       </section>
 
+      <!-- Бонусные действия -->
       <section class="panel collapsible">
         <details>
           <summary><span>Бонусные действия</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Бонусные действия" data-help-text="Действия, которые монстр может выполнить бонусным действием, если правило даёт ему такую возможность."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -202,6 +222,7 @@
         </details>
       </section>
 
+      <!-- Реакции -->
       <section class="panel collapsible">
         <details>
           <summary><span>Реакции</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Реакции" data-help-text="Ответные действия вне своего хода: парирование, контратака, защитный выпад и т.п."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -212,6 +233,7 @@
         </details>
       </section>
 
+      <!-- Легендарные действия -->
       <section class="panel collapsible">
         <details>
           <summary><span>Легендарные действия</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Легендарные действия" data-help-text="Доступны в конце хода других существ. Обычно их 3 за раунд, если не указано иное."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -223,6 +245,7 @@
         </details>
       </section>
 
+      <!-- Логово -->
       <section class="panel collapsible">
         <details>
           <summary><span>Логово</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Логово" data-help-text="Этот блок нужен не всем монстрам. Используй его для логовищных действий важных боссов и чудовищ."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -234,6 +257,7 @@
         </details>
       </section>
 
+      <!-- Проверка CR -->
       <section class="panel collapsible">
         <details>
           <summary><span>Проверка CR</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Проверка CR" data-help-text="Это черновая оценка по таблицам создания монстров: защитный CR считается из хитов и КД, атакующий — из среднего урона за раунд и бонуса атаки / сложности спасброска. Затем они усредняются. Это ориентир, а не абсолютная истина."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
@@ -247,18 +271,25 @@
           </div>
         </details>
       </section>
+      </div><!-- /.sidebar-content -->
     </aside>
 
     <main class="preview-wrap">
       <div class="preview-toolbar">
         <div class="toolbar-left"><strong>Предпросмотр</strong> <span class="muted">обновляется автоматически</span></div>
         <div class="toolbar-right">
-          <label class="toolbar-select"><span>Режим</span><select id="layoutMode"><option value="showcase" selected>Подробно</option><option value="statblock">Кратко</option></select></label>
+          <label class="toolbar-select"><span>Режим</span><select id="layoutMode">
+            <option value="statblockOne" selected>1 колонка</option>
+            <option value="statblockTwo">2 колонки</option>
+            <option value="showcase">Стартер-пак</option>
+          </select></label>
           <div class="chip" id="balanceChip">CR ≈ 1/2</div>
           <button type="button" onclick="downloadPNG()">Скачать PNG</button>
           <button type="button" class="secondary" onclick="downloadJSON()">Скачать JSON</button>
           <button type="button" class="secondary" onclick="loadJSON()">Загрузить JSON</button>
           <input type="file" id="jsonLoader" accept="application/json" hidden>
+          <!-- кнопка сворачивания предпросмотра -->
+          <button type="button" class="secondary" id="togglePreview">Свернуть</button>
         </div>
       </div>
 
