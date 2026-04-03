@@ -81,3 +81,87 @@ button{appearance:none;border:none;border-radius:12px;padding:11px 14px;font:inh
   margin-top: 0 !important;
   margin-bottom: 0 !important;
 }
+
+/* Two-column layout for statblock preview */
+.statblock.two-columns{
+  column-count:2;
+  column-gap:2rem;
+}
+
+/* сворачиваем предпросмотр: скрываем холст предпросмотра и предупреждения */
+.preview-wrap.collapsed #previewCanvas,
+.preview-wrap.collapsed #warnings {
+  display: none !important;
+}
+.preview-wrap.collapsed {
+  padding-bottom: 0;
+}
+
+/*
+ * Стили сворачивания формы (sidebar)
+ * По умолчанию sidebar располагается слева и занимает фиксированную ширину.
+ * Кнопка .collapse-btn позволяет сворачивать/разворачивать панель. В
+ * свернутом состоянии содержимое скрывается, а ширина панели сокращается,
+ * оставляя видимой только кнопку.
+ */
+
+/* размещаем кнопку поверх боковой панели */
+.sidebar {
+  position: relative;
+}
+
+/* кнопка сворачивания: небольшой круг с двумя вертикальными линиями */
+.collapse-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--text);
+  padding: 0;
+  z-index: 100;
+}
+
+/* две вертикальные панели внутри кнопки: левая узкая и правая широкая */
+.collapse-btn::before {
+  content: '';
+  display: block;
+  width: 0;
+  height: 14px;
+  border-left: 3px solid currentColor;
+  border-right: 7px solid currentColor;
+}
+
+/* При сворачивании меняем толщину панелей: левая становится широкой, правая — узкой */
+.app.sidebar-collapsed .collapse-btn::before {
+  border-left: 7px solid currentColor;
+  border-right: 3px solid currentColor;
+}
+
+/* При сворачивании боковая панель уменьшается и содержимое скрывается */
+.app.sidebar-collapsed {
+  grid-template-columns: 60px 1fr;
+}
+
+.app.sidebar-collapsed .sidebar-content {
+  display: none;
+}
+
+.app.sidebar-collapsed .sidebar {
+  padding-left: 18px;
+  padding-right: 18px;
+  border-right: none;
+  overflow: hidden;
+}
+
+/* Минимальная ширина для поля КД, чтобы число помещалось */
+#ac {
+  /* увеличиваем минимальную ширину для поля КД, чтобы текст помещался и был читаем */
+  min-width: 4.5rem;
+}
