@@ -255,8 +255,8 @@
         <details>
           <summary><span>Легендарные действия</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Легендарные действия" data-help-text="Доступны в конце хода других существ. Обычно их 3 за раунд, если не указано иное."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="legendary">+</button></div>
             <label class="field"><span>Описание легендарных действий</span><textarea id="legendaryDescription" class="auto-grow wide-area" rows="4" placeholder="Монстр может совершить 3 легендарных действия, выбирая из представленных ниже вариантов..."></textarea></label>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="legendary">+</button></div>
             <div id="legendaryEditor" class="entries compact-list"></div>
           </div>
         </details>
@@ -305,6 +305,7 @@
           <button type="button" onclick="downloadPNG()">Скачать PNG</button>
           <button type="button" onclick="downloadJSON()">Скачать JSON</button>
           <button type="button" onclick="loadJSON()">Загрузить JSON</button>
+          <button type="button" id="cyclePresetBtn" title="Загрузить пресет">🎲</button>
           <input type="file" id="jsonLoader" accept="application/json" hidden>
         </div>
       </div>

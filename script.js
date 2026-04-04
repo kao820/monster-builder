@@ -5,6 +5,7 @@ let skillEntries=[];
 let uploadedArtData="";
 let modalDraft=null;
 let extraTextDraft=null;
+let presetCycleIndex=0;
 
 const SECTION_LABELS={traits:"Особенность",actions:"Действие",bonus:"Бонусное действие",reactions:"Реакция",legendary:"Легендарное действие",lair:"Действие логова"};
 const ENTRY_ROOTS={traits:"traitsEditor",actions:"actionsEditor",bonus:"bonusEditor",reactions:"reactionsEditor",legendary:"legendaryEditor",lair:"lairEditor"};
@@ -385,6 +386,12 @@ function updateModalPreview(){
   if(!modalDraft) return;
   syncEntryShape(modalDraft.entry);
   if(modalDraft.entry.kind==='attack') syncAttackDerived(modalDraft.entry);
+  const toHitInput=document.querySelector('#entryModalBody [data-path="attack.toHit"]');
+  const diceInput=document.querySelector('#entryModalBody [data-path="damage.dice"]');
+  const dcInput=document.querySelector('#entryModalBody [data-path="extraHit.dc"]');
+  if(toHitInput && !modalDraft.entry.attack.manualToHit) toHitInput.value=modalDraft.entry.attack.toHit;
+  if(diceInput && !modalDraft.entry.damage.manualDice) diceInput.value=modalDraft.entry.damage.dice;
+  if(dcInput && modalDraft.entry.extraHit.enabled && modalDraft.entry.extraHit.mode==='save' && !modalDraft.entry.extraHit.manualDc) dcInput.value=modalDraft.entry.extraHit.dc;
   const note=document.getElementById('modalAttackPreview');
   if(note){
     let body='';
@@ -865,6 +872,25 @@ function applyState(state){
 function downloadJSON(){ const blob=new Blob([JSON.stringify(collectState(),null,2)],{type:'application/json;charset=utf-8'}); triggerDownload(blob,`${slugify(text('name')||'monster')}.json`); }
 function loadJSON(){ document.getElementById('jsonLoader').click(); }
 function handleJSONLoad(event){ const file=event.target.files[0]; if(!file) return; const reader=new FileReader(); reader.onload=e=>{ try{ applyState(JSON.parse(e.target.result)); }catch(err){ alert('Не удалось прочитать JSON. Проверь файл.'); console.error(err); } }; reader.readAsText(file,'utf-8'); event.target.value=''; }
+async function cyclePreset(){
+  const files=['анека.json','тув.json'];
+  if(presetCycleIndex<files.length){
+    const filename=files[presetCycleIndex];
+    try{
+      const response=await fetch(encodeURI(filename));
+      if(!response.ok) throw new Error(`preset not found: ${filename}`);
+      const state=await response.json();
+      applyState(state);
+    }catch(err){
+      console.error(err);
+      alert(`Не удалось загрузить пресет ${filename}.`);
+    }
+  } else {
+    window.location.reload();
+    return;
+  }
+  presetCycleIndex=(presetCycleIndex+1)%3;
+}
 function triggerDownload(blob, filename){ const link=document.createElement('a'); link.href=URL.createObjectURL(blob); link.download=filename; document.body.appendChild(link); link.click(); setTimeout(()=>{URL.revokeObjectURL(link.href); link.remove();},700); }
 function applyContainExportStyles(root){
   const art = root.querySelector('.showcase-art');
@@ -982,6 +1008,7 @@ function closeHelp(){ document.getElementById('helpModal').hidden=true; }
 function bindGlobalUI(){
   document.querySelectorAll('input,select,textarea').forEach(el=>{ el.addEventListener('input',updateAll); el.addEventListener('change',updateAll); if(el.tagName==='TEXTAREA') attachAutoGrow(el); });
   document.getElementById('jsonLoader').addEventListener('change',handleJSONLoad);
+  document.getElementById('cyclePresetBtn')?.addEventListener('click',cyclePreset);
   document.getElementById('imageUpload').addEventListener('change',handleImageUpload);
   document.querySelectorAll('.help-btn').forEach(btn=>btn.addEventListener('click',()=>openHelp(btn.dataset.helpTitle||'Подсказка',btn.dataset.helpText||'',btn.dataset.helpImage||'')));
   document.getElementById('helpModal').addEventListener('click',e=>{if(e.target.id==='helpModal') closeHelp();});
