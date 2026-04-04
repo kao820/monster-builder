@@ -50,6 +50,8 @@ button{appearance:none;border:none;border-radius:7px;padding:8px 10px;font:inher
 .sidebar-content{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start}
 .sidebar-content .sidebar-col{display:flex;flex-direction:column;gap:10px;min-width:0}
 .sidebar-content .sidebar-col > section{margin:0}
+.sidebar-content .sidebar-full{grid-column:1/-1;display:flex;flex-direction:column;gap:10px}
+.sidebar-content .sidebar-full > section{margin:0}
 .auto-flag{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:#6f1d14;font-weight:700}
 .input-under{margin-top:-8px;line-height:1}
 .additional-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:start}

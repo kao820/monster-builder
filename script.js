@@ -419,7 +419,7 @@ function renderEntryModal(resetScroll=true){
       <div class="inline-three span-2">
         <label class="field"><span>Кол-во использований</span><select data-path="usage.mode" data-rerender="1">${modalSelectOptions(DATA.usageOptions,'id','label',entry.usage.mode)}</select></label>
         <label class="field"><span>Тип атаки</span><select data-path="attack.mode" data-rerender="1">${modalSelectOptions(DATA.attackModes,'id','label',entry.attack.mode)}</select></label>
-        ${entry.attack.mode!=='other'?`<label class="field"><span>Вид атаки</span><select data-path="attack.category">${modalSelectOptions(DATA.attackCategories,'id','label',entry.attack.category)}</select><label class="mini-check auto-flag input-under"><input data-path="attack.proficient" type="checkbox" ${entry.attack.proficient?'checked':''}> авто</label></label>`:`<div></div>`}
+        ${entry.attack.mode!=='other'?`<label class="field"><span>Вид атаки</span><select data-path="attack.category">${modalSelectOptions(DATA.attackCategories,'id','label',entry.attack.category)}</select><label class="mini-check auto-flag input-under"><input data-path="attack.proficient" data-rerender="1" type="checkbox" ${entry.attack.proficient?'checked':''}> Владение оружием</label></label>`:`<div></div>`}
       </div>
       ${entry.usage.mode==='custom'?`<label class="field span-2"><span>Свой текст ограничения</span><input data-path="usage.custom" type="text" value="${escapeAttr(entry.usage.custom)}" placeholder="например, только в ярости"></label>`:''}
       ${entry.attack.mode==='other'?`<label class="field span-2"><span>Свой текст типа атаки</span><input data-path="attack.otherLabel" type="text" value="${escapeAttr(entry.attack.otherLabel)}" placeholder="Особое действие, рык, луч и т.д."></label>`:''}
@@ -448,7 +448,7 @@ function renderEntryModal(resetScroll=true){
         <label class="field span-2"><span>Описание эффекта</span><textarea data-path="extraHit.text" rows="4" class="auto-grow" placeholder="Например: цель должна пройти спасбросок Телосложения или будет отравлена до конца следующего хода.">${escapeHtml(entry.extraHit.text)}</textarea></label>
       `:''}
       ${entry.miss.enabled?`<label class="field span-2"><span>Эффект промаха</span><textarea data-path="miss.text" rows="3" class="auto-grow" placeholder="Например: при промахе цель всё равно получает половину урона.">${escapeHtml(entry.miss.text)}</textarea></label>`:''}
-      <div class="preview-note span-2"><strong>Черновик:</strong><div id="modalAttackPreview" class="attack-preview-inline"><em>${escapeHtml(formatEntryTitle(entry))}.</em> ${formatAttackBody(entry)}</div></div>
+      <div class="preview-note span-2"><strong>Предпросмотр:</strong><div id="modalAttackPreview" class="attack-preview-inline"><em>${escapeHtml(formatEntryTitle(entry))}.</em> ${formatAttackBody(entry)}</div></div>
     `;
   } else if(entry.kind==='multiattack') {
     const attackChoices=(entryState.actions||[]).filter(item=>item.kind==='attack' && item.id!==entry.id);
@@ -466,7 +466,7 @@ function renderEntryModal(resetScroll=true){
         </div>`).join('')}
       </div>
       <label class="field span-2"><span>Доп. текст</span><textarea data-path="text" rows="4" class="auto-grow" placeholder="Например: при необходимости он может заменить одну атаку Укусом на Плевок ядом.">${escapeHtml(entry.text||'')}</textarea></label>
-      <div class="preview-note span-2"><strong>Черновик:</strong><div id="modalAttackPreview" class="attack-preview-inline"><em>${escapeHtml(formatEntryTitle(entry))}.</em> ${formatMultiattackBody(entry)}</div></div>
+      <div class="preview-note span-2"><strong>Предпросмотр:</strong><div id="modalAttackPreview" class="attack-preview-inline"><em>${escapeHtml(formatEntryTitle(entry))}.</em> ${formatMultiattackBody(entry)}</div></div>
     `;
   } else {
     // placeholders for free-form entries (traits, bonus, reactions, legendary, lair, actions)
@@ -482,7 +482,7 @@ function renderEntryModal(resetScroll=true){
     html+=`
       <label class="field span-2"><span>Название</span><input data-path="title" type="text" value="${escapeAttr(entry.title)}" placeholder="${escapeAttr(ph.title)}"></label>
       <label class="field span-2"><span>Текстовый редактор</span><textarea data-path="text" rows="10" class="auto-grow entry-editor-text" placeholder="${escapeHtml(ph.text)}">${escapeHtml(entry.text||'')}</textarea></label>
-      <div class="preview-note span-2"><strong>Черновик:</strong><div id="modalAttackPreview" class="attack-preview-inline"><em>${escapeHtml((entry.title||'').trim()||'Без названия')}.</em> ${escapeHtml((entry.text||'').trim()||'Тут появится превью текста.').replace(/\n/g,'<br>')}</div></div>
+      <div class="preview-note span-2"><strong>Предпросмотр:</strong><div id="modalAttackPreview" class="attack-preview-inline"><em>${escapeHtml((entry.title||'').trim()||'Без названия')}.</em> ${escapeHtml((entry.text||'').trim()||'Тут появится превью текста.').replace(/\n/g,'<br>')}</div></div>
     `;
   }
   html+='</div>';
@@ -1002,15 +1002,23 @@ function splitSidebarColumns(){
   if(root.querySelector('.sidebar-col')) return;
   const sections=Array.from(root.children).filter(node=>node.tagName==='SECTION');
   if(!sections.length) return;
+  const byTitle=Object.fromEntries(sections.map(section=>{
+    const title=section.querySelector('summary > span')?.textContent?.trim();
+    return [title, section];
+  }));
+  const leftOrder=['Основное','Характеристики','Сопротивления и иммунитеты','Скорость','Навыки','Чувства и языки'];
+  const rightOrder=['Особенности','Бонусные действия','Действия','Реакции','Легендарные действия','Логово'];
+  const fullOrder=['Проверка CR'];
   const left=document.createElement('div');
   const right=document.createElement('div');
+  const full=document.createElement('div');
   left.className='sidebar-col sidebar-col-left';
   right.className='sidebar-col sidebar-col-right';
-  sections.forEach((section,idx)=>{
-    if(idx%2===0) left.appendChild(section);
-    else right.appendChild(section);
-  });
-  root.append(left,right);
+  full.className='sidebar-full';
+  leftOrder.forEach(title=>{ if(byTitle[title]) left.appendChild(byTitle[title]); });
+  rightOrder.forEach(title=>{ if(byTitle[title]) right.appendChild(byTitle[title]); });
+  fullOrder.forEach(title=>{ if(byTitle[title]) full.appendChild(byTitle[title]); });
+  root.append(left,right,full);
 }
 
 if(document.readyState!=='loading') splitSidebarColumns();
