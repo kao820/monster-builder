@@ -886,14 +886,14 @@ function splitSidebarColumns(){
   const root=document.querySelector('.sidebar-content');
   if(!root) return;
   if(root.querySelector('.sidebar-col')) return;
-  const sections=Array.from(root.querySelectorAll(':scope > section'));
+  const sections=Array.from(root.children).filter(node=>node.tagName==='SECTION');
   if(!sections.length) return;
   const left=document.createElement('div');
   const right=document.createElement('div');
   left.className='sidebar-col sidebar-col-left';
   right.className='sidebar-col sidebar-col-right';
   sections.forEach((section,idx)=>{
-    if(idx<=6) left.appendChild(section);
+    if(idx%2===0) left.appendChild(section);
     else right.appendChild(section);
   });
   root.append(left,right);
