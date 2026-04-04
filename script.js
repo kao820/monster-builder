@@ -882,8 +882,27 @@ function bindGlobalUI(){
   document.addEventListener('mousedown',e=>{ const btn=e.target.closest('.help-btn'); if(btn && btn.closest('summary')){ e.preventDefault(); e.stopPropagation(); } });
 }
 
+function splitSidebarColumns(){
+  const root=document.querySelector('.sidebar-content');
+  if(!root) return;
+  if(root.querySelector('.sidebar-col')) return;
+  const sections=Array.from(root.children).filter(node=>node.tagName==='SECTION');
+  if(!sections.length) return;
+  const left=document.createElement('div');
+  const right=document.createElement('div');
+  left.className='sidebar-col sidebar-col-left';
+  right.className='sidebar-col sidebar-col-right';
+  sections.forEach((section,idx)=>{
+    if(idx%2===0) left.appendChild(section);
+    else right.appendChild(section);
+  });
+  root.append(left,right);
+}
+
+if(document.readyState!=='loading') splitSidebarColumns();
+
 document.addEventListener('DOMContentLoaded',()=>{
-  initStaticUI(); bindGlobalUI();
+  initStaticUI(); splitSidebarColumns(); bindGlobalUI();
   entryState.traits.push({id:uid(),kind:'free',section:'traits',title:'Острое зрение',text:'Монстр совершает проверки Мудрости (Восприятие), основанные на зрении, с преимуществом.'});
   entryState.actions.push({
     id:uid(), kind:'attack', section:'actions', title:'Укус', usage:{mode:'none',custom:''},
@@ -893,14 +912,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   addSkill({skillId:'perception', prof:1});
   renderAllEntryLists();
   updateAll();
-  // обработчик сворачивания боковой панели
-  const collapseBtn=document.getElementById('collapseBtn');
-  if(collapseBtn){
-    collapseBtn.addEventListener('click',()=>{
-      const app=document.querySelector('.app');
-      if(app){
-        app.classList.toggle('sidebar-collapsed');
-      }
-    });
-  }
+  const app=document.querySelector('.app');
+  const showPreviewOnlyBtn=document.getElementById('showPreviewOnlyBtn');
+  const showBothBtn=document.getElementById('showBothBtn');
+  const showFormsOnlyBtn=document.getElementById('showFormsOnlyBtn');
+  const setLayoutMode=(mode)=>{
+    if(!app) return;
+    app.classList.remove('sidebar-collapsed','preview-collapsed');
+    if(mode==='preview-only') app.classList.add('sidebar-collapsed');
+    if(mode==='forms-only') app.classList.add('preview-collapsed');
+  };
+  if(showPreviewOnlyBtn) showPreviewOnlyBtn.addEventListener('click',()=>setLayoutMode('preview-only'));
+  if(showBothBtn) showBothBtn.addEventListener('click',()=>setLayoutMode('both'));
+  if(showFormsOnlyBtn) showFormsOnlyBtn.addEventListener('click',()=>setLayoutMode('forms-only'));
 });
