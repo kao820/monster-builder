@@ -13,7 +13,7 @@ html,body{margin:0;min-height:100%;background:radial-gradient(circle at 18% 8%,r
 .ability-card{--frame:#8f4a47;--paper:#f7f4ef;display:flex;flex-direction:column;align-items:center;min-width:0}
 .ability-card__box{position:relative;width:100%;height:132px;padding:8px 6px 32px;display:flex;flex-direction:column;align-items:center;background:var(--paper);border:3px solid var(--frame);border-radius:20px}
 .ability-card__label{font-size:18px;font-weight:800;line-height:1;color:var(--frame);margin-bottom:6px}
-.ability-card__score{width:100%;text-align:center;font-size:30px;font-weight:800;line-height:1;border:none;background:transparent;color:#111;outline:none}
+.ability-card__score{width:100%;text-align:center;font-size:24px;font-weight:800;line-height:1;border:none;background:transparent;color:#111;outline:none}
 .ability-card__score::-webkit-outer-spin-button,.ability-card__score::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .ability-card__score[type="number"]{-moz-appearance:textfield}
 .ability-card__mod{position:absolute;left:50%;bottom:-3px;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;background:var(--paper);border:3px solid var(--frame);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#111}
@@ -92,11 +92,7 @@ button{appearance:none;border:none;border-radius:7px;padding:8px 10px;font:inher
 .statblock.two-columns .bottom-rule,
 .statblock.two-columns h1,
 .statblock.two-columns .subtitle,
-.statblock.two-columns > p,
-.statblock.two-columns .ability-table{column-span:all}
-.statblock.two-columns .ability-table{font-size:14px}
-.statblock.two-columns .ability-table th,
-.statblock.two-columns .ability-table td{padding:4px 2px}
+.statblock.two-columns > p{column-span:all}
 
 /* сворачиваем предпросмотр: скрываем холст предпросмотра и предупреждения */
 .preview-wrap.collapsed #previewCanvas,
