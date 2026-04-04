@@ -471,7 +471,7 @@ function renderExtraSlot(kind){
   if(!slot) return;
   const hasValue=Boolean(text(kind));
   if(!hasValue){
-    slot.innerHTML=`<button type="button" class="secondary" data-extra-add="${kind}">+ Добавить</button>`;
+    slot.innerHTML=`<button type="button" class="secondary icon-btn" data-extra-add="${kind}" title="Добавить" aria-label="Добавить">＋</button>`;
   } else {
     slot.innerHTML=`<div class="extra-editor-actions"><button type="button" class="secondary icon-btn" data-extra-edit="${kind}" title="Изменить" aria-label="Изменить">✎</button><button type="button" class="secondary icon-btn" data-extra-delete="${kind}" title="Удалить" aria-label="Удалить">🗑</button></div>`;
   }
@@ -489,9 +489,13 @@ function openExtraTextModal(kind){
   extraTextDraft={kind, value:text(kind)};
   const isDescription=kind==='description';
   document.getElementById('extraTextModalTitle').textContent=isDescription?'Описание':'Заметка';
-  document.getElementById('extraTextEditor').value=extraTextDraft.value;
+  const editor=document.getElementById('extraTextEditor');
+  editor.value=extraTextDraft.value;
+  editor.placeholder=isDescription
+    ? 'Кто это, откуда взялся, как себя ведёт и чем интересен.'
+    : 'Короткий тезис, состояние, особое правило, примечание для мастера...';
   document.getElementById('extraTextModal').hidden=false;
-  attachAutoGrow(document.getElementById('extraTextEditor'));
+  attachAutoGrow(editor);
 }
 function closeExtraTextModal(){ extraTextDraft=null; document.getElementById('extraTextModal').hidden=true; }
 function saveExtraTextModal(){
