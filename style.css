@@ -74,51 +74,13 @@ button{appearance:none;border:none;border-radius:7px;padding:8px 10px;font:inher
 @media (max-width:980px){.editor-split{grid-template-columns:1fr}}
 
 
-/* Final unify top detailed block with the card */
-.preview-canvas,
-.preview-canvas.mode-showcase,
-.preview-canvas.mode-statblock {
-  gap: 0 !important;
-}
-
-.showcase-top {
-  margin: 0 !important;
-  box-shadow: none !important;
-  background: #e8e2cf !important;
-  position: relative;
-  z-index: 0;
-}
-
-.preview-canvas.mode-showcase .showcase-top {
-  gap: 0 !important;
-  background: #e8e2cf !important;
-}
-
-.showcase-art,
-.showcase-text,
-.art-bg,
-.callout-box {
-  background: #e8e2cf !important;
-}
-.showcase-top > *{background:#e8e2cf !important}
-.showcase-text,
-.showcase-text h2,
-.showcase-text p,
-.callout-box{color:#2b1f14 !important}
-
-.art-bg {
-  background-image: none !important;
-}
-
-.preview-canvas.mode-showcase .statblock {
-  margin-top: 0 !important;
-  box-shadow: none !important;
-}
-
-#previewCanvas > * {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-}
+.preview-canvas,.preview-canvas.mode-showcase,.preview-canvas.mode-statblock{gap:0}
+.showcase-top{margin:0;box-shadow:none;background:#e8e2cf}
+.preview-canvas.mode-showcase .showcase-top{gap:0;background:#e8e2cf}
+.showcase-art,.showcase-text,.callout-box{background:#e8e2cf}
+.showcase-text,.showcase-text h2,.showcase-text p,.callout-box{color:#2b1f14}
+.preview-canvas.mode-showcase .statblock{margin-top:0;box-shadow:none}
+#previewCanvas > *{margin-top:0;margin-bottom:0}
 
 /* Two-column layout for statblock preview */
 .statblock.two-columns{
@@ -130,9 +92,7 @@ button{appearance:none;border:none;border-radius:7px;padding:8px 10px;font:inher
 .statblock.two-columns h1,
 .statblock.two-columns .subtitle,
 .statblock.two-columns > p,
-.statblock.two-columns .ability-table{
-  column-span:all;
-}
+.statblock.two-columns .ability-table{column-span:all}
 
 /* сворачиваем предпросмотр: скрываем холст предпросмотра и предупреждения */
 .preview-wrap.collapsed #previewCanvas,
