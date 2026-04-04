@@ -28,25 +28,27 @@
           <summary><span>Основное</span><span class="summary-tools"><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
             <div class="grid cols-2">
-              <label class="field span-2">
-                <span>Имя монстра</span>
-                <input id="name" type="text" placeholder="Древний чёрный дракон">
-              </label>
+              <div class="inline-two span-2">
+                <label class="field">
+                  <span>Имя монстра</span>
+                  <input id="name" type="text" placeholder="Древний чёрный дракон">
+                </label>
+                <label class="field">
+                  <span>Размер <button class="help-btn" type="button" data-help-title="Размер" data-help-image="size-reference.png" data-help-text="Размер влияет на кость хитов, место на сетке и общее ощущение от существа. В DnD 5e для монстров размер задаёт тип кости хитов: Крошечный d4, Маленький d6, Средний d8, Большой d10, Огромный d12, Громадный d20.">?</button></span>
+                  <select id="size"></select>
+                </label>
+              </div>
 
-              <label class="field">
-                <span>Размер <button class="help-btn" type="button" data-help-title="Размер" data-help-image="size-reference.png" data-help-text="Размер влияет на кость хитов, место на сетке и общее ощущение от существа. В DnD 5e для монстров размер задаёт тип кости хитов: Крошечный d4, Маленький d6, Средний d8, Большой d10, Огромный d12, Громадный d20.">?</button></span>
-                <select id="size"></select>
-              </label>
-
-              <label class="field">
-                <span>Тип <button class="help-btn" type="button" data-help-title="Тип монстра" data-help-text="Тип определяет категорию существа: дракон, нежить, чудовище, зверь и т.д. Это важно для заклинаний, особенностей и лора.">?</button></span>
-                <select id="type"></select>
-              </label>
-
-              <label class="field span-2">
-                <span>Подтип / теги <button class="help-btn" type="button" data-help-title="Подтип / теги" data-help-text="Уточняющие признаки внутри типа. Например: демон, перевёртыш, титан, дроу. Они помогают дописать строку вида существа и уточняют лор.">?</button></span>
-                <input id="subtype" type="text" placeholder="демон, перевёртыш, титан, дроу...">
-              </label>
+              <div class="inline-two span-2">
+                <label class="field">
+                  <span>Тип <button class="help-btn" type="button" data-help-title="Тип монстра" data-help-text="Тип определяет категорию существа: дракон, нежить, чудовище, зверь и т.д. Это важно для заклинаний, особенностей и лора.">?</button></span>
+                  <select id="type"></select>
+                </label>
+                <label class="field">
+                  <span>Подтип / теги <button class="help-btn" type="button" data-help-title="Подтип / теги" data-help-text="Уточняющие признаки внутри типа. Например: демон, перевёртыш, титан, дроу. Они помогают дописать строку вида существа и уточняют лор.">?</button></span>
+                  <input id="subtype" type="text" placeholder="демон, перевёртыш, титан, дроу...">
+                </label>
+              </div>
 
               <label class="field">
                 <span>Мировоззрение <button class="help-btn" type="button" data-help-title="Мировоззрение" data-help-text="Короткое описание моральной и поведенческой позиции существа. Если оно слишком странное или инстинктивное — можно выбрать «без мировоззрения».">?</button></span>
@@ -58,45 +60,41 @@
                 <select id="cr"></select>
               </label>
 
-              <!-- Обновленный блок КД с автозаполнением -->
-              <label class="field">
-                <span>КД <button class="help-btn" type="button" data-help-title="Класс Доспеха" data-help-text="КД природного доспеха считается как 10 + бонус мастерства + модификатор Ловкости (не ниже 0). Сними галочку, чтобы вписать своё значение.">?</button></span>
-                <div class="inline-row">
-                  <!-- начальное значение установлено на 12, но будет вычислено автоматически -->
+              <div class="inline-three span-2">
+                <label class="field">
+                  <span>КД <button class="help-btn" type="button" data-help-title="Класс Доспеха" data-help-text="КД природного доспеха считается как 10 + бонус мастерства + модификатор Ловкости (не ниже 0). Сними галочку, чтобы вписать своё значение.">?</button></span>
                   <input id="ac" type="number" min="1" max="40" value="12">
-                  <label class="mini-check auto-flag"><input id="autoAC" type="checkbox" checked> авто</label>
-                </div>
-              </label>
+                  <label class="mini-check auto-flag input-under"><input id="autoAC" type="checkbox" checked> авто</label>
+                </label>
 
-              <label class="field">
-                <span>Хиты <button class="help-btn" type="button" data-help-title="Хиты" data-help-text="Общий запас здоровья существа. В конструкторе они используются и для черновой оценки CR.">?</button></span>
-                <input id="hp" type="number" min="1" max="2000" value="45">
-              </label>
+                <label class="field">
+                  <span>Хиты <button class="help-btn" type="button" data-help-title="Хиты" data-help-text="Общий запас здоровья существа. В конструкторе они используются и для черновой оценки CR.">?</button></span>
+                  <input id="hp" type="number" min="1" max="2000" value="45">
+                </label>
 
-              <label class="field span-2">
-                <span>Кость хитов <button class="help-btn" type="button" data-help-title="Кость хитов" data-help-text="Размер определяет тип кости хитов, а количество костей можно черново вывести из хитов и Телосложения. При желании автозаполнение можно отключить и вписать значение вручную.">?</button></span>
-                <div class="inline-row">
+                <label class="field">
+                  <span>Кость хитов <button class="help-btn" type="button" data-help-title="Кость хитов" data-help-text="Размер определяет тип кости хитов, а количество костей можно черново вывести из хитов и Телосложения. При желании автозаполнение можно отключить и вписать значение вручную.">?</button></span>
                   <input id="hitDice" type="text" placeholder="6к8 + 18">
-                  <label class="mini-check auto-flag"><input id="autoHitDice" type="checkbox" checked> авто</label>
-                </div>
-              </label>
+                  <label class="mini-check auto-flag input-under"><input id="autoHitDice" type="checkbox" checked> авто</label>
+                </label>
+              </div>
 
               <details class="inline-details span-2">
                 <summary><span>Дополнительно</span><span class="summary-tools"><span class="summary-arrow">▾</span></span></summary>
                 <div class="details-body">
-                  <div class="section-title inline-action-row">
-                    <h3>Изображение и описание</h3>
-                    <button type="button" class="secondary" onclick="document.getElementById('imageUpload').click()">Загрузить картинку</button>
+                  <div class="additional-grid headers-row">
+                    <h3>Изображение</h3>
+                    <h3>Описание</h3>
+                    <h3>Заметка</h3>
+                  </div>
+                  <div class="additional-grid">
+                    <button type="button" class="secondary icon-btn" title="Загрузить изображение" aria-label="Загрузить изображение" onclick="document.getElementById('imageUpload').click()">↑</button>
+                    <div class="extra-editor-slot" id="descriptionSlot"></div>
+                    <div class="extra-editor-slot" id="calloutSlot"></div>
                   </div>
                   <input id="imageUpload" type="file" accept="image/*,.tif,.tiff,.webp,.avif,.jpg,.jpeg,.png" hidden>
-                  <label class="field">
-                    <span>Описание / лор</span>
-                    <textarea id="description" class="auto-grow wide-area" rows="6" placeholder="Кто это, откуда взялся, как себя ведёт и чем интересен."></textarea>
-                  </label>
-                  <label class="field top-gap">
-                    <span>Врезка / заметка</span>
-                    <textarea id="calloutText" class="auto-grow wide-area" rows="4" placeholder="Короткий тезис, состояние, особое правило, примечание для мастера..."></textarea>
-                  </label>
+                  <textarea id="description" hidden></textarea>
+                  <textarea id="calloutText" hidden></textarea>
                 </div>
               </details>
             </div>
@@ -144,7 +142,7 @@
         <details>
           <summary><span>Навыки</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Навыки" data-help-text="Добавляй только те навыки, в которых у монстра есть владение. «эксп.» — это экспертиза, то есть двойной бонус мастерства."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary" onclick="addSkill()">+ добавить</button></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary" onclick="addSkill()">+</button></div>
             <div id="skillEntries" class="entries"></div>
           </div>
         </details>
@@ -155,22 +153,38 @@
         <details>
           <summary><span>Сопротивления и иммунитеты</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Сопротивления и иммунитеты" data-help-text="Раскрывай только нужные блоки и отмечай подходящие типы урона и состояния. Если у монстра этого нет — ничего выбирать не нужно."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <details>
-              <summary><span>Сопротивления урону</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Сопротивления урону" data-help-text="Существо получает половину урона указанного типа, если правило не говорит иное."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
-              <div id="resistances" class="tag-picker"></div>
-            </details>
-            <details>
-              <summary><span>Иммунитеты к урону</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Иммунитеты к урону" data-help-text="Существо полностью игнорирует урон указанного типа, если правило не говорит иное."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
-              <div id="immunities" class="tag-picker"></div>
-            </details>
-            <details>
-              <summary><span>Уязвимости к урону</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Уязвимости к урону" data-help-text="Существо получает двойной урон указанного типа."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
-              <div id="vulnerabilities" class="tag-picker"></div>
-            </details>
-            <details>
-              <summary><span>Иммунитеты к состояниям</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Иммунитеты к состояниям" data-help-text="Существо не подвержено указанным состояниям, таким как испуг, окаменение или опутанность."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
-              <div id="conditionImmunities" class="tag-picker"></div>
-            </details>
+            <div class="resist-group" data-tag-group="resistances">
+              <div class="resist-head"><strong>Сопротивления урону</strong><button type="button" class="secondary icon-btn" data-tag-open="resistances" title="Добавить" aria-label="Добавить">＋</button></div>
+              <div id="resistancesSelected" class="selected-tags"></div>
+              <div id="resistancesEditor" class="tag-editor" hidden>
+                <div id="resistances" class="tag-picker tag-picker--editor"></div>
+                <div class="panel-head-inline"><button type="button" class="secondary" data-tag-cancel="resistances">Отмена</button><button type="button" data-tag-apply="resistances">Применить</button></div>
+              </div>
+            </div>
+            <div class="resist-group" data-tag-group="immunities">
+              <div class="resist-head"><strong>Иммунитеты к урону</strong><button type="button" class="secondary icon-btn" data-tag-open="immunities" title="Добавить" aria-label="Добавить">＋</button></div>
+              <div id="immunitiesSelected" class="selected-tags"></div>
+              <div id="immunitiesEditor" class="tag-editor" hidden>
+                <div id="immunities" class="tag-picker tag-picker--editor"></div>
+                <div class="panel-head-inline"><button type="button" class="secondary" data-tag-cancel="immunities">Отмена</button><button type="button" data-tag-apply="immunities">Применить</button></div>
+              </div>
+            </div>
+            <div class="resist-group" data-tag-group="vulnerabilities">
+              <div class="resist-head"><strong>Уязвимости к урону</strong><button type="button" class="secondary icon-btn" data-tag-open="vulnerabilities" title="Добавить" aria-label="Добавить">＋</button></div>
+              <div id="vulnerabilitiesSelected" class="selected-tags"></div>
+              <div id="vulnerabilitiesEditor" class="tag-editor" hidden>
+                <div id="vulnerabilities" class="tag-picker tag-picker--editor"></div>
+                <div class="panel-head-inline"><button type="button" class="secondary" data-tag-cancel="vulnerabilities">Отмена</button><button type="button" data-tag-apply="vulnerabilities">Применить</button></div>
+              </div>
+            </div>
+            <div class="resist-group" data-tag-group="conditionImmunities">
+              <div class="resist-head"><strong>Иммунитеты к состояниям</strong><button type="button" class="secondary icon-btn" data-tag-open="conditionImmunities" title="Добавить" aria-label="Добавить">＋</button></div>
+              <div id="conditionImmunitiesSelected" class="selected-tags"></div>
+              <div id="conditionImmunitiesEditor" class="tag-editor" hidden>
+                <div id="conditionImmunities" class="tag-picker tag-picker--editor"></div>
+                <div class="panel-head-inline"><button type="button" class="secondary" data-tag-cancel="conditionImmunities">Отмена</button><button type="button" data-tag-apply="conditionImmunities">Применить</button></div>
+              </div>
+            </div>
           </div>
         </details>
       </section>
@@ -197,7 +211,7 @@
         <details>
           <summary><span>Особенности</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Особенности" data-help-text="Постоянные свойства монстра: острое зрение, амфибия, сопротивление магии, регенерация и т.п."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="traits">+ добавить</button></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="traits">+</button></div>
             <div id="traitsEditor" class="entries compact-list"></div>
           </div>
         </details>
@@ -208,7 +222,7 @@
         <details>
           <summary><span>Действия</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Действия" data-help-text="Обычные действия существа в свой ход: мультиатака, укусы, когти, способности с перезарядкой и т.д."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="actions">+ добавить</button></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="actions">+</button></div>
             <div id="actionsEditor" class="entries compact-list"></div>
           </div>
         </details>
@@ -219,7 +233,7 @@
         <details>
           <summary><span>Бонусные действия</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Бонусные действия" data-help-text="Действия, которые монстр может выполнить бонусным действием, если правило даёт ему такую возможность."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="bonus">+ добавить</button></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="bonus">+</button></div>
             <div id="bonusEditor" class="entries compact-list"></div>
           </div>
         </details>
@@ -230,7 +244,7 @@
         <details>
           <summary><span>Реакции</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Реакции" data-help-text="Ответные действия вне своего хода: парирование, контратака, защитный выпад и т.п."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="reactions">+ добавить</button></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="reactions">+</button></div>
             <div id="reactionsEditor" class="entries compact-list"></div>
           </div>
         </details>
@@ -241,7 +255,7 @@
         <details>
           <summary><span>Легендарные действия</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Легендарные действия" data-help-text="Доступны в конце хода других существ. Обычно их 3 за раунд, если не указано иное."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="legendary">+ дбавить</button></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="legendary">+</button></div>
             <label class="field"><span>Описание легендарных действий</span><textarea id="legendaryDescription" class="auto-grow wide-area" rows="4" placeholder="Монстр может совершить 3 легендарных действия, выбирая из представленных ниже вариантов..."></textarea></label>
             <div id="legendaryEditor" class="entries compact-list"></div>
           </div>
@@ -254,7 +268,7 @@
           <summary><span>Логово</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Логово" data-help-text="Этот блок нужен не всем монстрам. Используй его для логовищных действий важных боссов и чудовищ."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
             <label class="field"><span>Описание логова</span><textarea id="lairDescription" class="auto-grow wide-area" rows="4" placeholder="В логове монстр может призывать особые эффекты..."></textarea></label>
-            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="lair">+ добавить</button></div>
+            <div class="panel-head-inline action-only"><button type="button" class="secondary entry-add" data-section="lair">+</button></div>
             <div id="lairEditor" class="entries compact-list"></div>
           </div>
         </details>
@@ -265,7 +279,7 @@
         <details>
           <summary><span>Проверка CR</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Проверка CR" data-help-text="Это черновая оценка по таблицам создания монстров: защитный CR считается из хитов и КД, атакующий — из среднего урона за раунд и бонуса атаки / сложности спасброска. Затем они усредняются. Это ориентир, а не абсолютная истина."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <div class="grid cols-2">
+            <div class="inline-four">
               <label class="field"><span>Средний урон за раунд</span><input id="dpr" type="number" min="0" value="12"></label>
               <label class="field"><span>Бонус атаки</span><input id="attackBonus" type="number" min="-5" max="20" value="3"></label>
               <label class="field"><span>Сложность спасброска</span><input id="saveDc" type="number" min="1" max="30" value="13"></label>
@@ -345,6 +359,21 @@
       <h3 id="helpTitle">Подсказка</h3>
       <img id="helpImage" alt="" hidden>
       <p id="helpText"></p>
+    </div>
+  </div>
+
+  <div id="extraTextModal" class="help-modal" hidden>
+    <div class="help-card">
+      <button class="help-close" type="button" onclick="closeExtraTextModal()">×</button>
+      <h3 id="extraTextModalTitle">Тестовый редактор</h3>
+      <label class="field">
+        <span>Тестовый редактор</span>
+        <textarea id="extraTextEditor" class="auto-grow wide-area" rows="8"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="secondary" onclick="closeExtraTextModal()">Отмена</button>
+        <button type="button" onclick="saveExtraTextModal()">Сохранить</button>
+      </div>
     </div>
   </div>
 
