@@ -96,27 +96,76 @@ function populateCR(){
   DATA.crTable.forEach(r=>{const o=document.createElement('option'); o.value=r.cr; o.textContent=`${r.cr} (${r.xp.toLocaleString('ru-RU')} XP)`; el.appendChild(o);});
   el.value='1/2';
 }
+const TAG_GROUPS={
+  resistances:DATA.damageTypes,
+  immunities:DATA.damageTypes,
+  vulnerabilities:DATA.damageTypes,
+  conditionImmunities:DATA.conditions
+};
+const tagState=Object.fromEntries(Object.keys(TAG_GROUPS).map(id=>[id,[]]));
+const tagDraft=Object.fromEntries(Object.keys(TAG_GROUPS).map(id=>[id,[]]));
+
 function buildTags(id, items){
   const root=document.getElementById(id); root.innerHTML='';
   items.forEach(item=>{
-    const label=document.createElement('label'); label.className='tag';
-    label.innerHTML=`<input type="checkbox" value="${item}"><span>${item}</span>`;
-    const input=label.querySelector('input');
-    input.addEventListener('change',()=>{label.classList.toggle('active',input.checked); updateAll();});
-    root.appendChild(label);
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='tag';
+    btn.textContent=item;
+    btn.addEventListener('click',()=>{
+      const set=new Set(tagDraft[id]);
+      if(set.has(item)) set.delete(item); else set.add(item);
+      tagDraft[id]=[...set];
+      renderTagEditor(id);
+    });
+    root.appendChild(btn);
   });
 }
-function checkedValues(rootId){ return Array.from(document.querySelectorAll(`#${rootId} input[type="checkbox"]:checked`)).map(el=>el.value); }
+function checkedValues(rootId){ return tagState[rootId] ? [...tagState[rootId]] : []; }
+function renderTagEditor(id){
+  const root=document.getElementById(id);
+  if(!root) return;
+  const draftSet=new Set(tagDraft[id]||[]);
+  root.querySelectorAll('.tag').forEach(btn=>btn.classList.toggle('active', draftSet.has(btn.textContent)));
+}
+function renderTagSelected(id){
+  const root=document.getElementById(`${id}Selected`);
+  if(!root) return;
+  root.innerHTML='';
+  (tagState[id]||[]).forEach(value=>{
+    const chip=document.createElement('span');
+    chip.className='selected-tag';
+    chip.innerHTML=`<span>${escapeHtml(value)}</span><button type="button" class="secondary" title="Удалить" aria-label="Удалить">×</button>`;
+    chip.querySelector('button').addEventListener('click',()=>{
+      tagState[id]=tagState[id].filter(item=>item!==value);
+      renderTagSelected(id);
+      updateAll();
+    });
+    root.appendChild(chip);
+  });
+}
+function openTagEditor(id){
+  tagDraft[id]=[...(tagState[id]||[])];
+  document.getElementById(`${id}Editor`).hidden=false;
+  renderTagEditor(id);
+}
+function closeTagEditor(id){ document.getElementById(`${id}Editor`).hidden=true; }
+function applyTagEditor(id){
+  tagState[id]=[...(tagDraft[id]||[])];
+  renderTagSelected(id);
+  closeTagEditor(id);
+  updateAll();
+}
 
 function initStaticUI(){
   populateSelect('size', DATA.sizes);
   populateSelect('type', sortRu(DATA.types));
   populateSelect('alignment', sortRu(DATA.alignments));
   populateCR();
-  buildTags('resistances', DATA.damageTypes);
-  buildTags('immunities', DATA.damageTypes);
-  buildTags('vulnerabilities', DATA.damageTypes);
-  buildTags('conditionImmunities', DATA.conditions);
+  Object.entries(TAG_GROUPS).forEach(([id,items])=>{
+    buildTags(id, items);
+    renderTagSelected(id);
+  });
 }
 
 function addSkill(defaults={}){
@@ -794,7 +843,13 @@ function collectState(){
 function applyState(state){
   Object.entries(state.fields||{}).forEach(([id,value])=>{const el=document.getElementById(id); if(!el) return; if(el.type==='checkbox') el.checked=Boolean(value); else el.value=value;});
   uploadedArtData=state.art||'';
-  ['resistances','immunities','vulnerabilities','conditionImmunities'].forEach(key=>{ Array.from(document.querySelectorAll(`#${key} input[type="checkbox"]`)).forEach(input=>{ input.checked=(state.tags?.[key]||[]).includes(input.value); input.parentElement.classList.toggle('active',input.checked); }); });
+  Object.keys(TAG_GROUPS).forEach(key=>{
+    tagState[key]=Array.isArray(state.tags?.[key])?[...state.tags[key]]:[];
+    tagDraft[key]=[...tagState[key]];
+    renderTagSelected(key);
+    renderTagEditor(key);
+    closeTagEditor(key);
+  });
   skillEntries=Array.isArray(state.skillEntries)?state.skillEntries:[]; renderSkills();
   ENTRY_TYPES.forEach(type=>{ entryState[type]=Array.isArray(state.entries?.[type])?state.entries[type]:[]; entryState[type].forEach(item=>syncEntryShape(item)); renderEntryList(type); });
   renderExtraSlots();
@@ -925,6 +980,9 @@ function bindGlobalUI(){
   document.getElementById('helpModal').addEventListener('click',e=>{if(e.target.id==='helpModal') closeHelp();});
   document.getElementById('entryModal').addEventListener('click',e=>{if(e.target.id==='entryModal') closeEntryModal();});
   document.getElementById('extraTextModal').addEventListener('click',e=>{if(e.target.id==='extraTextModal') closeExtraTextModal();});
+  document.querySelectorAll('[data-tag-open]').forEach(btn=>btn.addEventListener('click',()=>openTagEditor(btn.dataset.tagOpen)));
+  document.querySelectorAll('[data-tag-apply]').forEach(btn=>btn.addEventListener('click',()=>applyTagEditor(btn.dataset.tagApply)));
+  document.querySelectorAll('[data-tag-cancel]').forEach(btn=>btn.addEventListener('click',()=>closeTagEditor(btn.dataset.tagCancel)));
   document.querySelectorAll('.entry-add').forEach(btn=>btn.addEventListener('click',()=>openEntryModal(btn.dataset.section)));
   document.querySelectorAll('.summary-tools .help-btn').forEach(btn=>{ btn.addEventListener('click',e=>{e.preventDefault(); e.stopPropagation();}); btn.addEventListener('mousedown',e=>{e.preventDefault(); e.stopPropagation();}); });
   document.addEventListener('click',e=>{ const btn=e.target.closest('.help-btn'); if(btn && btn.closest('summary')){ e.preventDefault(); e.stopPropagation(); openHelp(btn.dataset.helpTitle||'Подсказка',btn.dataset.helpText||'',btn.dataset.helpImage||''); } });

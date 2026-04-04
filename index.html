@@ -88,7 +88,7 @@
                     <h3>Заметка</h3>
                   </div>
                   <div class="additional-grid">
-                    <button type="button" class="secondary icon-btn" title="Загрузить изображение" aria-label="Загрузить изображение" onclick="document.getElementById('imageUpload').click()">🖼</button>
+                    <button type="button" class="secondary icon-btn" title="Загрузить изображение" aria-label="Загрузить изображение" onclick="document.getElementById('imageUpload').click()">↑</button>
                     <div class="extra-editor-slot" id="descriptionSlot"></div>
                     <div class="extra-editor-slot" id="calloutSlot"></div>
                   </div>
@@ -153,22 +153,38 @@
         <details>
           <summary><span>Сопротивления и иммунитеты</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Сопротивления и иммунитеты" data-help-text="Раскрывай только нужные блоки и отмечай подходящие типы урона и состояния. Если у монстра этого нет — ничего выбирать не нужно."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
           <div class="details-body">
-            <details>
-              <summary><span>Сопротивления урону</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Сопротивления урону" data-help-text="Существо получает половину урона указанного типа, если правило не говорит иное."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
-              <div id="resistances" class="tag-picker"></div>
-            </details>
-            <details>
-              <summary><span>Иммунитеты к урону</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Иммунитеты к урону" data-help-text="Существо полностью игнорирует урон указанного типа, если правило не говорит иное."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
-              <div id="immunities" class="tag-picker"></div>
-            </details>
-            <details>
-              <summary><span>Уязвимости к урону</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Уязвимости к урону" data-help-text="Существо получает двойной урон указанного типа."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
-              <div id="vulnerabilities" class="tag-picker"></div>
-            </details>
-            <details>
-              <summary><span>Иммунитеты к состояниям</span><span class="summary-tools"><button class="help-btn" type="button" data-help-title="Иммунитеты к состояниям" data-help-text="Существо не подвержено указанным состояниям, таким как испуг, окаменение или опутанность."><span>?</span></button><span class="summary-arrow">▾</span></span></summary>
-              <div id="conditionImmunities" class="tag-picker"></div>
-            </details>
+            <div class="resist-group" data-tag-group="resistances">
+              <div class="resist-head"><strong>Сопротивления урону</strong><button type="button" class="secondary icon-btn" data-tag-open="resistances" title="Добавить" aria-label="Добавить">＋</button></div>
+              <div id="resistancesSelected" class="selected-tags"></div>
+              <div id="resistancesEditor" class="tag-editor" hidden>
+                <div id="resistances" class="tag-picker tag-picker--editor"></div>
+                <div class="panel-head-inline"><button type="button" class="secondary" data-tag-cancel="resistances">Отмена</button><button type="button" data-tag-apply="resistances">Применить</button></div>
+              </div>
+            </div>
+            <div class="resist-group" data-tag-group="immunities">
+              <div class="resist-head"><strong>Иммунитеты к урону</strong><button type="button" class="secondary icon-btn" data-tag-open="immunities" title="Добавить" aria-label="Добавить">＋</button></div>
+              <div id="immunitiesSelected" class="selected-tags"></div>
+              <div id="immunitiesEditor" class="tag-editor" hidden>
+                <div id="immunities" class="tag-picker tag-picker--editor"></div>
+                <div class="panel-head-inline"><button type="button" class="secondary" data-tag-cancel="immunities">Отмена</button><button type="button" data-tag-apply="immunities">Применить</button></div>
+              </div>
+            </div>
+            <div class="resist-group" data-tag-group="vulnerabilities">
+              <div class="resist-head"><strong>Уязвимости к урону</strong><button type="button" class="secondary icon-btn" data-tag-open="vulnerabilities" title="Добавить" aria-label="Добавить">＋</button></div>
+              <div id="vulnerabilitiesSelected" class="selected-tags"></div>
+              <div id="vulnerabilitiesEditor" class="tag-editor" hidden>
+                <div id="vulnerabilities" class="tag-picker tag-picker--editor"></div>
+                <div class="panel-head-inline"><button type="button" class="secondary" data-tag-cancel="vulnerabilities">Отмена</button><button type="button" data-tag-apply="vulnerabilities">Применить</button></div>
+              </div>
+            </div>
+            <div class="resist-group" data-tag-group="conditionImmunities">
+              <div class="resist-head"><strong>Иммунитеты к состояниям</strong><button type="button" class="secondary icon-btn" data-tag-open="conditionImmunities" title="Добавить" aria-label="Добавить">＋</button></div>
+              <div id="conditionImmunitiesSelected" class="selected-tags"></div>
+              <div id="conditionImmunitiesEditor" class="tag-editor" hidden>
+                <div id="conditionImmunities" class="tag-picker tag-picker--editor"></div>
+                <div class="panel-head-inline"><button type="button" class="secondary" data-tag-cancel="conditionImmunities">Отмена</button><button type="button" data-tag-apply="conditionImmunities">Применить</button></div>
+              </div>
+            </div>
           </div>
         </details>
       </section>

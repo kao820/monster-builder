@@ -51,11 +51,19 @@ button{appearance:none;border:none;border-radius:7px;padding:8px 10px;font:inher
 .sidebar-content .sidebar-col{display:flex;flex-direction:column;gap:10px;min-width:0}
 .sidebar-content .sidebar-col > section{margin:0}
 .auto-flag{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:#6f1d14;font-weight:700}
-.input-under{margin-top:2px}
+.input-under{margin-top:-2px}
 .additional-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:start}
 .additional-grid h3{margin:0;font-size:16px;color:#4b3428}
 .extra-editor-slot{display:flex;align-items:center;gap:8px;min-height:40px}
 .extra-editor-actions{display:flex;gap:8px}
+.resist-group{border:1px solid rgba(111,29,20,.22);border-radius:10px;padding:10px;background:rgba(255,255,255,.18)}
+.resist-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.selected-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.selected-tag{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border:1px solid #7f2018;border-radius:999px;background:rgba(127,32,24,.08);color:#4a2f23;font-size:13px}
+.selected-tag button{width:16px;height:16px;min-width:16px;padding:0;border-radius:50%;font-size:12px;line-height:1}
+.tag-editor{margin-top:10px;padding-top:10px;border-top:1px dashed rgba(111,29,20,.35)}
+.tag-picker--editor .tag{border-color:#7f2018;background:#f2e8d4;color:#4a2f23}
+.tag-picker--editor .tag.active{background:rgba(127,32,24,.18);border-color:#7f2018}
 .app.sidebar-collapsed .sidebar-header h1,
 .app.sidebar-collapsed .sidebar-header p{display:none}
 
