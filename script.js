@@ -899,6 +899,8 @@ function splitSidebarColumns(){
   root.append(left,right);
 }
 
+if(document.readyState!=='loading') splitSidebarColumns();
+
 document.addEventListener('DOMContentLoaded',()=>{
   initStaticUI(); splitSidebarColumns(); bindGlobalUI();
   entryState.traits.push({id:uid(),kind:'free',section:'traits',title:'Острое зрение',text:'Монстр совершает проверки Мудрости (Восприятие), основанные на зрении, с преимуществом.'});
