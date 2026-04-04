@@ -14,8 +14,11 @@
       <div class="sidebar-header">
         <h1>Конструктор монстра</h1>
         <p>Локальный редактор в духе DnD 5e</p>
-        <!-- Кнопка сворачивания/разворачивания боковой панели -->
-        <button id="collapseBtn" class="collapse-btn" type="button" title="Свернуть/развернуть"><span></span></button>
+        <div class="layout-toggle-group" aria-label="Режим отображения">
+          <button id="showPreviewOnlyBtn" class="collapse-btn" type="button" title="Скрыть формы">⟨</button>
+          <button id="showBothBtn" class="collapse-btn" type="button" title="Показать обе области">‖</button>
+          <button id="showFormsOnlyBtn" class="collapse-btn" type="button" title="Скрыть предпросмотр">⟩</button>
+        </div>
       </div>
       <!-- Контейнер для всех форм. При сворачивании он скрывается -->
       <div class="sidebar-content">

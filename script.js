@@ -912,14 +912,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   addSkill({skillId:'perception', prof:1});
   renderAllEntryLists();
   updateAll();
-  // обработчик сворачивания боковой панели
-  const collapseBtn=document.getElementById('collapseBtn');
-  if(collapseBtn){
-    collapseBtn.addEventListener('click',()=>{
-      const app=document.querySelector('.app');
-      if(app){
-        app.classList.toggle('sidebar-collapsed');
-      }
-    });
-  }
+  const app=document.querySelector('.app');
+  const showPreviewOnlyBtn=document.getElementById('showPreviewOnlyBtn');
+  const showBothBtn=document.getElementById('showBothBtn');
+  const showFormsOnlyBtn=document.getElementById('showFormsOnlyBtn');
+  const setLayoutMode=(mode)=>{
+    if(!app) return;
+    app.classList.remove('sidebar-collapsed','preview-collapsed');
+    if(mode==='preview-only') app.classList.add('sidebar-collapsed');
+    if(mode==='forms-only') app.classList.add('preview-collapsed');
+  };
+  if(showPreviewOnlyBtn) showPreviewOnlyBtn.addEventListener('click',()=>setLayoutMode('preview-only'));
+  if(showBothBtn) showBothBtn.addEventListener('click',()=>setLayoutMode('both'));
+  if(showFormsOnlyBtn) showFormsOnlyBtn.addEventListener('click',()=>setLayoutMode('forms-only'));
 });
