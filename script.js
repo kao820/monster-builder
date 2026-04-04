@@ -4,6 +4,7 @@ const entryState=Object.fromEntries(ENTRY_TYPES.map(t=>[t,[]]));
 let skillEntries=[];
 let uploadedArtData="";
 let modalDraft=null;
+let extraTextDraft=null;
 
 const SECTION_LABELS={traits:"Особенность",actions:"Действие",bonus:"Бонусное действие",reactions:"Реакция",legendary:"Легендарное действие",lair:"Действие логова"};
 const ENTRY_ROOTS={traits:"traitsEditor",actions:"actionsEditor",bonus:"bonusEditor",reactions:"reactionsEditor",legendary:"legendaryEditor",lair:"lairEditor"};
@@ -95,27 +96,76 @@ function populateCR(){
   DATA.crTable.forEach(r=>{const o=document.createElement('option'); o.value=r.cr; o.textContent=`${r.cr} (${r.xp.toLocaleString('ru-RU')} XP)`; el.appendChild(o);});
   el.value='1/2';
 }
+const TAG_GROUPS={
+  resistances:DATA.damageTypes,
+  immunities:DATA.damageTypes,
+  vulnerabilities:DATA.damageTypes,
+  conditionImmunities:DATA.conditions
+};
+const tagState=Object.fromEntries(Object.keys(TAG_GROUPS).map(id=>[id,[]]));
+const tagDraft=Object.fromEntries(Object.keys(TAG_GROUPS).map(id=>[id,[]]));
+
 function buildTags(id, items){
   const root=document.getElementById(id); root.innerHTML='';
   items.forEach(item=>{
-    const label=document.createElement('label'); label.className='tag';
-    label.innerHTML=`<input type="checkbox" value="${item}"><span>${item}</span>`;
-    const input=label.querySelector('input');
-    input.addEventListener('change',()=>{label.classList.toggle('active',input.checked); updateAll();});
-    root.appendChild(label);
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='tag';
+    btn.textContent=item;
+    btn.addEventListener('click',()=>{
+      const set=new Set(tagDraft[id]);
+      if(set.has(item)) set.delete(item); else set.add(item);
+      tagDraft[id]=[...set];
+      renderTagEditor(id);
+    });
+    root.appendChild(btn);
   });
 }
-function checkedValues(rootId){ return Array.from(document.querySelectorAll(`#${rootId} input[type="checkbox"]:checked`)).map(el=>el.value); }
+function checkedValues(rootId){ return tagState[rootId] ? [...tagState[rootId]] : []; }
+function renderTagEditor(id){
+  const root=document.getElementById(id);
+  if(!root) return;
+  const draftSet=new Set(tagDraft[id]||[]);
+  root.querySelectorAll('.tag').forEach(btn=>btn.classList.toggle('active', draftSet.has(btn.textContent)));
+}
+function renderTagSelected(id){
+  const root=document.getElementById(`${id}Selected`);
+  if(!root) return;
+  root.innerHTML='';
+  (tagState[id]||[]).forEach(value=>{
+    const chip=document.createElement('span');
+    chip.className='selected-tag';
+    chip.innerHTML=`<span>${escapeHtml(value)}</span><button type="button" class="secondary" title="Удалить" aria-label="Удалить">×</button>`;
+    chip.querySelector('button').addEventListener('click',()=>{
+      tagState[id]=tagState[id].filter(item=>item!==value);
+      renderTagSelected(id);
+      updateAll();
+    });
+    root.appendChild(chip);
+  });
+}
+function openTagEditor(id){
+  tagDraft[id]=[...(tagState[id]||[])];
+  document.getElementById(`${id}Editor`).hidden=false;
+  renderTagEditor(id);
+}
+function closeTagEditor(id){ document.getElementById(`${id}Editor`).hidden=true; }
+function applyTagEditor(id){
+  tagState[id]=[...(tagDraft[id]||[])];
+  renderTagSelected(id);
+  closeTagEditor(id);
+  updateAll();
+}
 
 function initStaticUI(){
   populateSelect('size', DATA.sizes);
   populateSelect('type', sortRu(DATA.types));
   populateSelect('alignment', sortRu(DATA.alignments));
   populateCR();
-  buildTags('resistances', DATA.damageTypes);
-  buildTags('immunities', DATA.damageTypes);
-  buildTags('vulnerabilities', DATA.damageTypes);
-  buildTags('conditionImmunities', DATA.conditions);
+  Object.entries(TAG_GROUPS).forEach(([id,items])=>{
+    buildTags(id, items);
+    renderTagSelected(id);
+  });
 }
 
 function addSkill(defaults={}){
@@ -130,7 +180,7 @@ function renderSkills(){
   skillEntries.forEach(item=>{
     const card=document.createElement('div'); card.className='entry-card';
     const options=skills.map(skill=>`<option value="${skill.id}" ${skill.id===item.skillId?'selected':''}>${skill.label}</option>`).join('');
-    card.innerHTML=`<div class="skill-entry-title">Навык</div><div class="skill-entry-top"><select>${options}</select><select><option value="1" ${item.prof===1?'selected':''}>проф.</option><option value="2" ${item.prof===2?'selected':''}>эксп.</option></select><button type="button" class="secondary">Удалить</button></div>`;
+    card.innerHTML=`<div class="skill-entry-title">Навык</div><div class="skill-entry-top"><select>${options}</select><select><option value="1" ${item.prof===1?'selected':''}>проф.</option><option value="2" ${item.prof===2?'selected':''}>эксп.</option></select><button type="button" class="secondary icon-btn" title="Удалить" aria-label="Удалить">🗑</button></div>`;
     const selects=card.querySelectorAll('select');
     selects[0].addEventListener('change',e=>{item.skillId=e.target.value; updateAll();});
     selects[1].addEventListener('change',e=>{item.prof=Number(e.target.value); updateAll();});
@@ -297,7 +347,7 @@ function renderEntryList(section){
   getOrderedEntriesForSection(section).forEach(item=>{
     syncEntryShape(item); if(item.kind==='attack') syncAttackDerived(item);
     const row=document.createElement('div'); row.className='list-row';
-    row.innerHTML=`<div class="list-row-title">${escapeHtml(entryDisplayTitle(item))}</div><div class="list-row-actions"><button type="button" class="secondary" data-action="edit">Изменить</button><button type="button" class="secondary" data-action="delete">Удалить</button></div>`;
+    row.innerHTML=`<div class="list-row-title">${escapeHtml(entryDisplayTitle(item))}</div><div class="list-row-actions"><button type="button" class="secondary icon-btn" data-action="edit" title="Изменить" aria-label="Изменить">✎</button><button type="button" class="secondary icon-btn" data-action="delete" title="Удалить" aria-label="Удалить">🗑</button></div>`;
     row.querySelector('[data-action="edit"]').addEventListener('click',()=>openEntryModal(section,item.id));
     row.querySelector('[data-action="delete"]').addEventListener('click',()=>{entryState[section]=entryState[section].filter(x=>x.id!==item.id); renderEntryList(section); updateAll();});
     root.appendChild(row);
@@ -315,7 +365,21 @@ function openEntryModal(section, entryId=null){
 }
 function closeEntryModal(){ modalDraft=null; document.getElementById('entryModal').hidden=true; }
 function getModalRef(path){ const parts=path.split('.'); let ref=modalDraft.entry; while(parts.length>1){ ref=ref[parts.shift()]; } return {ref,key:parts[0]}; }
-function setModalPath(path, value, rerender=false){ const {ref,key}=getModalRef(path); ref[key]=value; if(path==='kind' && value==='attack') ensureAttackShape(modalDraft.entry); if(path==='kind' && value==='multiattack') ensureMultiattackShape(modalDraft.entry); syncEntryShape(modalDraft.entry); if(modalDraft.entry.kind==='attack') syncAttackDerived(modalDraft.entry); if(rerender) renderEntryModal(false); else updateModalPreview(); }
+function setModalPath(path, value, rerender=false){
+  if(path==='attack.autoToHit'){ modalDraft.entry.attack.manualToHit=!value; }
+  else if(path==='damage.autoDice'){ modalDraft.entry.damage.manualDice=!value; }
+  else if(path==='extraHit.autoDc'){ modalDraft.entry.extraHit.manualDc=!value; }
+  else {
+    const {ref,key}=getModalRef(path);
+    ref[key]=value;
+  }
+  if(path==='kind' && value==='attack') ensureAttackShape(modalDraft.entry);
+  if(path==='kind' && value==='multiattack') ensureMultiattackShape(modalDraft.entry);
+  if(modalDraft.entry.kind==='multiattack') modalDraft.entry.title='Мультиатака';
+  syncEntryShape(modalDraft.entry);
+  if(modalDraft.entry.kind==='attack') syncAttackDerived(modalDraft.entry);
+  if(rerender) renderEntryModal(false); else updateModalPreview();
+}
 function modalSelectOptions(items, valueKey='id', labelKey='label', selected=''){ return items.map(item=>`<option value="${escapeAttr(item[valueKey])}" ${item[valueKey]===selected?'selected':''}>${escapeHtml(item[labelKey])}</option>`).join(''); }
 function updateModalPreview(){
   if(!modalDraft) return;
@@ -347,57 +411,58 @@ function renderEntryModal(resetScroll=true){
   document.getElementById('entryModalTitle').textContent=modalDraft.entryId?`Изменить: ${SECTION_LABELS[section]}`:`Новая запись: ${SECTION_LABELS[section]}`;
   const body=document.getElementById('entryModalBody');
   const kindChoices=sectionKinds(section);
-  const kindBlock=kindChoices.length>1?`<label class="field"><span>Тип записи</span><select data-path="kind" data-rerender="1">${modalSelectOptions(kindChoices,'id','label',entry.kind)}</select></label>`:'';
+  const kindBlock=(kindChoices.length>1 && entry.kind!=='multiattack')?`<label class="field"><span>Тип записи</span><select data-path="kind" data-rerender="1">${modalSelectOptions(kindChoices,'id','label',entry.kind)}</select></label>`:'';
   let html=`<div class="grid cols-2 modal-grid">${kindBlock}`;
   if(entry.kind==='attack'){
     html+=`
       <label class="field ${kindChoices.length>1?'':'span-2'}"><span>Название</span><input data-path="title" type="text" value="${escapeAttr(entry.title)}" placeholder="Укус"></label>
-      <label class="field span-2"><span>Кол-во использований</span><select data-path="usage.mode" data-rerender="1">${modalSelectOptions(DATA.usageOptions,'id','label',entry.usage.mode)}</select></label>
+      <div class="inline-three span-2">
+        <label class="field"><span>Кол-во использований</span><select data-path="usage.mode" data-rerender="1">${modalSelectOptions(DATA.usageOptions,'id','label',entry.usage.mode)}</select></label>
+        <label class="field"><span>Тип атаки</span><select data-path="attack.mode" data-rerender="1">${modalSelectOptions(DATA.attackModes,'id','label',entry.attack.mode)}</select></label>
+        ${entry.attack.mode!=='other'?`<label class="field"><span>Вид атаки</span><select data-path="attack.category">${modalSelectOptions(DATA.attackCategories,'id','label',entry.attack.category)}</select><label class="mini-check auto-flag input-under"><input data-path="attack.proficient" type="checkbox" ${entry.attack.proficient?'checked':''}> авто</label></label>`:`<div></div>`}
+      </div>
       ${entry.usage.mode==='custom'?`<label class="field span-2"><span>Свой текст ограничения</span><input data-path="usage.custom" type="text" value="${escapeAttr(entry.usage.custom)}" placeholder="например, только в ярости"></label>`:''}
-      <label class="field"><span>Тип атаки</span><select data-path="attack.mode" data-rerender="1">${modalSelectOptions(DATA.attackModes,'id','label',entry.attack.mode)}</select></label>
-      ${entry.attack.mode!=='other'?`<label class="field"><span>Вид атаки</span><select data-path="attack.category">${modalSelectOptions(DATA.attackCategories,'id','label',entry.attack.category)}</select></label>`:''}
       ${entry.attack.mode==='other'?`<label class="field span-2"><span>Свой текст типа атаки</span><input data-path="attack.otherLabel" type="text" value="${escapeAttr(entry.attack.otherLabel)}" placeholder="Особое действие, рык, луч и т.д."></label>`:''}
       ${entry.attack.mode!=='other'?`<div class="inline-four span-2 attack-line">
         <label class="field"><span>Характеристика</span><select data-path="attack.ability">${modalSelectOptions(DATA.saveAbilities,'id','label',entry.attack.ability)}</select></label>
-        <label class="field"><span>Бонус попадания</span><input data-path="attack.toHit" type="number" value="${entry.attack.toHit}" ${entry.attack.manualToHit?'':'disabled'}></label>
-        <label class="checkline inline-check-box"><input data-path="attack.proficient" type="checkbox" ${entry.attack.proficient?'checked':''}> Владение</label>
-        <label class="checkline inline-check-box"><input data-path="attack.manualToHit" data-rerender="1" type="checkbox" ${entry.attack.manualToHit?'checked':''}> Вписать вручную</label>
-      </div>
-      <div class="inline-three span-2">
+        <label class="field"><span>Бонус попадания</span><input data-path="attack.toHit" type="number" value="${entry.attack.toHit}" ${entry.attack.manualToHit?'':'disabled'}><label class="mini-check auto-flag input-under"><input data-path="attack.autoToHit" data-rerender="1" type="checkbox" ${!entry.attack.manualToHit?'checked':''}> авто</label></label>
         <label class="field"><span>Досягаемость, фт</span><input data-path="attack.reach" type="number" min="0" value="${entry.attack.reach}"></label>
         <label class="field"><span>Цель</span><select data-path="attack.target">${DATA.targetOptions.map(v=>`<option value="${v}" ${v===entry.attack.target?'selected':''}>${v}</option>`).join('')}</select></label>
-        <div></div>
       </div>
       <div class="inline-four span-2 damage-line">
         <label class="field"><span>Средний урон</span><input data-path="damage.average" type="number" min="0" value="${entry.damage.average}"></label>
-        <label class="field grow"><span>Кости урона</span><input data-path="damage.dice" type="text" value="${escapeAttr(entry.damage.dice)}" ${entry.damage.manualDice?'':'disabled'}></label>
+        <label class="field grow"><span>Кости урона</span><input data-path="damage.dice" type="text" value="${escapeAttr(entry.damage.dice)}" ${entry.damage.manualDice?'':'disabled'}><label class="mini-check auto-flag input-under"><input data-path="damage.autoDice" data-rerender="1" type="checkbox" ${!entry.damage.manualDice?'checked':''}> авто</label></label>
         <label class="field"><span>Тип урона</span><select data-path="damage.type">${DATA.damageTypes.map(v=>`<option value="${v}" ${v===entry.damage.type?'selected':''}>${v}</option>`).join('')}</select></label>
-        <label class="checkline inline-check-box"><input data-path="damage.manualDice" data-rerender="1" type="checkbox" ${entry.damage.manualDice?'checked':''}> Указать руками кости</label>
+        <div></div>
       </div>`:''}
-      <div class="feature-toggle span-2"><label class="checkline"><input data-path="extraHit.enabled" data-rerender="1" type="checkbox" ${entry.extraHit.enabled?'checked':''}> Дополнительный эффект при попадании</label></div>
+      <div class="inline-two span-2">
+        <label class="checkline"><input data-path="extraHit.enabled" data-rerender="1" type="checkbox" ${entry.extraHit.enabled?'checked':''}> Дополнительный эффект при попадании</label>
+        <label class="checkline"><input data-path="miss.enabled" data-rerender="1" type="checkbox" ${entry.miss.enabled?'checked':''}> Есть эффект промаха</label>
+      </div>
       ${entry.extraHit.enabled?`
         <div class="inline-three span-2">
           <label class="field"><span>Тип эффекта</span><select data-path="extraHit.mode" data-rerender="1"><option value="save" ${entry.extraHit.mode==='save'?'selected':''}>Спасбросок</option><option value="other" ${entry.extraHit.mode==='other'?'selected':''}>Другое</option></select></label>
           ${entry.extraHit.mode==='save'?`<label class="field"><span>Характеристика</span><select data-path="extraHit.saveAbility" data-rerender="1">${modalSelectOptions(DATA.saveAbilities,'id','label',entry.extraHit.saveAbility)}</select></label>`:`<div></div>`}
-          ${entry.extraHit.mode==='save'?`<div class="dc-inline"><label class="field"><span>Сл</span><input data-path="extraHit.dc" type="number" value="${entry.extraHit.dc}" ${entry.extraHit.manualDc?'':'disabled'}></label><label class="checkline inline-check-box"><input data-path="extraHit.manualDc" data-rerender="1" type="checkbox" ${entry.extraHit.manualDc?'checked':''}> Указать вручную</label></div>`:`<div></div>`}
+          ${entry.extraHit.mode==='save'?`<label class="field"><span>Сл</span><input data-path="extraHit.dc" type="number" value="${entry.extraHit.dc}" ${entry.extraHit.manualDc?'':'disabled'}><label class="mini-check auto-flag input-under"><input data-path="extraHit.autoDc" data-rerender="1" type="checkbox" ${!entry.extraHit.manualDc?'checked':''}> авто</label></label>`:`<div></div>`}
         </div>
-        <label class="field span-2"><span>Описание эффекта</span><textarea data-path="extraHit.text" rows="4" class="auto-grow">${escapeHtml(entry.extraHit.text)}</textarea></label>
+        <label class="field span-2"><span>Описание эффекта</span><textarea data-path="extraHit.text" rows="4" class="auto-grow" placeholder="Например: цель должна пройти спасбросок Телосложения или будет отравлена до конца следующего хода.">${escapeHtml(entry.extraHit.text)}</textarea></label>
       `:''}
-      <div class="feature-toggle span-2"><label class="checkline"><input data-path="miss.enabled" data-rerender="1" type="checkbox" ${entry.miss.enabled?'checked':''}> Есть эффект промаха</label></div>
-      ${entry.miss.enabled?`<label class="field span-2"><span>Эффект промаха</span><textarea data-path="miss.text" rows="3" class="auto-grow">${escapeHtml(entry.miss.text)}</textarea></label>`:''}
+      ${entry.miss.enabled?`<label class="field span-2"><span>Эффект промаха</span><textarea data-path="miss.text" rows="3" class="auto-grow" placeholder="Например: при промахе цель всё равно получает половину урона.">${escapeHtml(entry.miss.text)}</textarea></label>`:''}
       <div class="preview-note span-2"><strong>Черновик:</strong><div id="modalAttackPreview" class="attack-preview-inline"><em>${escapeHtml(formatEntryTitle(entry))}.</em> ${formatAttackBody(entry)}</div></div>
     `;
   } else if(entry.kind==='multiattack') {
     const attackChoices=(entryState.actions||[]).filter(item=>item.kind==='attack' && item.id!==entry.id);
-    const attackOptions=attackChoices.map(item=>`<option value="${escapeAttr(item.id)}">${escapeHtml(formatEntryTitle(item)||'Атака')}</option>`).join('');
     html+=`
-      <label class="field span-2"><span>Название</span><input data-path="title" type="text" value="${escapeAttr(entry.title)}" placeholder="Мультиатака"></label>
+      <div class="kind-add-row span-2">
+        ${kindChoices.length>1?`<label class="field"><span>Тип записи</span><select data-path="kind" data-rerender="1">${modalSelectOptions(kindChoices,'id','label',entry.kind)}</select></label>`:''}
+        <button type="button" class="secondary" data-ma-add>+ добавить удар</button>
+      </div>
       <div class="span-2 multiattack-box">
-        <div class="multiattack-head"><strong>Удары в мультиатаке</strong><button type="button" class="secondary" data-ma-add>+ добавить удар</button></div>
+        <div class="multiattack-head"><strong>Удары в мультиатаке</strong></div>
         ${entry.items.map((item, idx)=>`<div class="multiattack-row" data-ma-row="${idx}">
           <label class="field grow"><span>Атака</span><select data-path="items.${idx}.attackId">${attackChoices.length?`<option value="">— выбери атаку —</option>${attackChoices.map(att=>`<option value="${escapeAttr(att.id)}" ${att.id===item.attackId?'selected':''}>${escapeHtml(formatEntryTitle(att)||'Атака')}</option>`).join('')}`:`<option value="">Сначала создай обычную атаку</option>`}</select></label>
           <label class="field count"><span>Кол-во ударов</span><input data-path="items.${idx}.count" type="number" min="1" max="10" value="${Number(item.count)||1}"></label>
-          <button type="button" class="secondary" data-ma-remove="${idx}">Удалить</button>
+          <button type="button" class="secondary icon-btn" data-ma-remove="${idx}" title="Удалить" aria-label="Удалить">🗑</button>
         </div>`).join('')}
       </div>
       <label class="field span-2"><span>Доп. текст</span><textarea data-path="text" rows="4" class="auto-grow" placeholder="Например: при необходимости он может заменить одну атаку Укусом на Плевок ядом.">${escapeHtml(entry.text||'')}</textarea></label>
@@ -416,17 +481,8 @@ function renderEntryModal(resetScroll=true){
     const ph=freePlaceholders[section] || {title: SECTION_LABELS[section], text:''};
     html+=`
       <label class="field span-2"><span>Название</span><input data-path="title" type="text" value="${escapeAttr(entry.title)}" placeholder="${escapeAttr(ph.title)}"></label>
-      <div class="editor-split span-2">
-        <label class="field">
-          <span>Текстовый редактор</span>
-          <textarea data-path="text" rows="10" class="auto-grow entry-editor-text" placeholder="${escapeHtml(ph.text)}">${escapeHtml(entry.text||'')}</textarea>
-        </label>
-        <div class="text-preview-card">
-          <div class="text-preview-head">Предпросмотр</div>
-          <div class="text-preview-title" id="modalTextPreviewTitle">${escapeHtml((entry.title||'').trim()||'Без названия')}</div>
-          <div class="text-preview-body" id="modalTextPreview">${escapeHtml((entry.text||'').trim()||'Тут появится превью текста.').replace(/\n/g,'<br>')}</div>
-        </div>
-      </div>
+      <label class="field span-2"><span>Текстовый редактор</span><textarea data-path="text" rows="10" class="auto-grow entry-editor-text" placeholder="${escapeHtml(ph.text)}">${escapeHtml(entry.text||'')}</textarea></label>
+      <div class="preview-note span-2"><strong>Черновик:</strong><div id="modalAttackPreview" class="attack-preview-inline"><em>${escapeHtml((entry.title||'').trim()||'Без названия')}.</em> ${escapeHtml((entry.text||'').trim()||'Тут появится превью текста.').replace(/\n/g,'<br>')}</div></div>
     `;
   }
   html+='</div>';
@@ -455,6 +511,7 @@ function renderEntryModal(resetScroll=true){
 
 function saveEntryModal(){
   if(!modalDraft) return;
+  if(modalDraft.entry.kind==='multiattack') modalDraft.entry.title='Мультиатака';
   syncAttackDerived(modalDraft.entry);
   const section=modalDraft.section;
   const entry=deepClone(modalDraft.entry);
@@ -463,6 +520,52 @@ function saveEntryModal(){
     if(idx>=0) entryState[section][idx]=entry;
   } else entryState[section].push(entry);
   renderEntryList(section); updateAll(); closeEntryModal();
+}
+
+function renderExtraSlot(kind){
+  const slot=document.getElementById(kind==='description'?'descriptionSlot':'calloutSlot');
+  if(!slot) return;
+  const hasValue=Boolean(text(kind));
+  if(!hasValue){
+    slot.innerHTML=`<button type="button" class="secondary icon-btn" data-extra-add="${kind}" title="Добавить" aria-label="Добавить">＋</button>`;
+  } else {
+    slot.innerHTML=`<div class="extra-editor-actions"><button type="button" class="secondary icon-btn" data-extra-edit="${kind}" title="Изменить" aria-label="Изменить">✎</button><button type="button" class="secondary icon-btn" data-extra-delete="${kind}" title="Удалить" aria-label="Удалить">🗑</button></div>`;
+  }
+  slot.querySelector('[data-extra-add]')?.addEventListener('click',()=>openExtraTextModal(kind));
+  slot.querySelector('[data-extra-edit]')?.addEventListener('click',()=>openExtraTextModal(kind));
+  slot.querySelector('[data-extra-delete]')?.addEventListener('click',()=>deleteExtraText(kind));
+}
+
+function renderExtraSlots(){
+  renderExtraSlot('description');
+  renderExtraSlot('calloutText');
+}
+
+function openExtraTextModal(kind){
+  extraTextDraft={kind, value:text(kind)};
+  const isDescription=kind==='description';
+  document.getElementById('extraTextModalTitle').textContent=isDescription?'Описание':'Заметка';
+  const editor=document.getElementById('extraTextEditor');
+  editor.value=extraTextDraft.value;
+  editor.placeholder=isDescription
+    ? 'Кто это, откуда взялся, как себя ведёт и чем интересен.'
+    : 'Короткий тезис, состояние, особое правило, примечание для мастера...';
+  document.getElementById('extraTextModal').hidden=false;
+  attachAutoGrow(editor);
+}
+function closeExtraTextModal(){ extraTextDraft=null; document.getElementById('extraTextModal').hidden=true; }
+function saveExtraTextModal(){
+  if(!extraTextDraft) return;
+  const value=String(document.getElementById('extraTextEditor').value||'').trim();
+  document.getElementById(extraTextDraft.kind).value=value;
+  renderExtraSlots();
+  updateAll();
+  closeExtraTextModal();
+}
+function deleteExtraText(kind){
+  document.getElementById(kind).value='';
+  renderExtraSlots();
+  updateAll();
 }
 
 function renderEntriesOut(outId, section){
@@ -747,9 +850,16 @@ function collectState(){
 function applyState(state){
   Object.entries(state.fields||{}).forEach(([id,value])=>{const el=document.getElementById(id); if(!el) return; if(el.type==='checkbox') el.checked=Boolean(value); else el.value=value;});
   uploadedArtData=state.art||'';
-  ['resistances','immunities','vulnerabilities','conditionImmunities'].forEach(key=>{ Array.from(document.querySelectorAll(`#${key} input[type="checkbox"]`)).forEach(input=>{ input.checked=(state.tags?.[key]||[]).includes(input.value); input.parentElement.classList.toggle('active',input.checked); }); });
+  Object.keys(TAG_GROUPS).forEach(key=>{
+    tagState[key]=Array.isArray(state.tags?.[key])?[...state.tags[key]]:[];
+    tagDraft[key]=[...tagState[key]];
+    renderTagSelected(key);
+    renderTagEditor(key);
+    closeTagEditor(key);
+  });
   skillEntries=Array.isArray(state.skillEntries)?state.skillEntries:[]; renderSkills();
   ENTRY_TYPES.forEach(type=>{ entryState[type]=Array.isArray(state.entries?.[type])?state.entries[type]:[]; entryState[type].forEach(item=>syncEntryShape(item)); renderEntryList(type); });
+  renderExtraSlots();
   updateAll();
 }
 function downloadJSON(){ const blob=new Blob([JSON.stringify(collectState(),null,2)],{type:'application/json;charset=utf-8'}); triggerDownload(blob,`${slugify(text('name')||'monster')}.json`); }
@@ -876,6 +986,10 @@ function bindGlobalUI(){
   document.querySelectorAll('.help-btn').forEach(btn=>btn.addEventListener('click',()=>openHelp(btn.dataset.helpTitle||'Подсказка',btn.dataset.helpText||'',btn.dataset.helpImage||'')));
   document.getElementById('helpModal').addEventListener('click',e=>{if(e.target.id==='helpModal') closeHelp();});
   document.getElementById('entryModal').addEventListener('click',e=>{if(e.target.id==='entryModal') closeEntryModal();});
+  document.getElementById('extraTextModal').addEventListener('click',e=>{if(e.target.id==='extraTextModal') closeExtraTextModal();});
+  document.querySelectorAll('[data-tag-open]').forEach(btn=>btn.addEventListener('click',()=>openTagEditor(btn.dataset.tagOpen)));
+  document.querySelectorAll('[data-tag-apply]').forEach(btn=>btn.addEventListener('click',()=>applyTagEditor(btn.dataset.tagApply)));
+  document.querySelectorAll('[data-tag-cancel]').forEach(btn=>btn.addEventListener('click',()=>closeTagEditor(btn.dataset.tagCancel)));
   document.querySelectorAll('.entry-add').forEach(btn=>btn.addEventListener('click',()=>openEntryModal(btn.dataset.section)));
   document.querySelectorAll('.summary-tools .help-btn').forEach(btn=>{ btn.addEventListener('click',e=>{e.preventDefault(); e.stopPropagation();}); btn.addEventListener('mousedown',e=>{e.preventDefault(); e.stopPropagation();}); });
   document.addEventListener('click',e=>{ const btn=e.target.closest('.help-btn'); if(btn && btn.closest('summary')){ e.preventDefault(); e.stopPropagation(); openHelp(btn.dataset.helpTitle||'Подсказка',btn.dataset.helpText||'',btn.dataset.helpImage||''); } });
@@ -911,6 +1025,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
   addSkill({skillId:'perception', prof:1});
   renderAllEntryLists();
+  renderExtraSlots();
   updateAll();
   const app=document.querySelector('.app');
   const showPreviewOnlyBtn=document.getElementById('showPreviewOnlyBtn');
