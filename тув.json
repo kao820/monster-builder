@@ -1,0 +1,24 @@
+{
+  "fields": {
+    "name": "Тув",
+    "size": "Большой",
+    "type": "чудовище",
+    "subtype": "пустынный",
+    "alignment": "хаотично-злой",
+    "cr": "5",
+    "hp": "102",
+    "ac": "16",
+    "hitDice": "12к10 + 36",
+    "languages": "Понимает Общий, но не говорит",
+    "layoutMode": "showcase"
+  },
+  "tags": {
+    "resistances": ["холод", "огонь"],
+    "immunities": [],
+    "vulnerabilities": ["дробящий"],
+    "conditionImmunities": ["испуг"]
+  },
+  "entries": {},
+  "skillEntries": [],
+  "art": ""
+}

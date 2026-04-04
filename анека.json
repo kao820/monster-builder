@@ -1,0 +1,24 @@
+{
+  "fields": {
+    "name": "Анека",
+    "size": "Средний",
+    "type": "гуманоид",
+    "subtype": "воин",
+    "alignment": "нейтральный",
+    "cr": "3",
+    "hp": "65",
+    "ac": "15",
+    "hitDice": "10к8 + 20",
+    "languages": "Общий",
+    "layoutMode": "statblockOne"
+  },
+  "tags": {
+    "resistances": ["огонь"],
+    "immunities": [],
+    "vulnerabilities": [],
+    "conditionImmunities": []
+  },
+  "entries": {},
+  "skillEntries": [],
+  "art": ""
+}
