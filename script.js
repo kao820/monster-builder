@@ -882,8 +882,27 @@ function bindGlobalUI(){
   document.addEventListener('mousedown',e=>{ const btn=e.target.closest('.help-btn'); if(btn && btn.closest('summary')){ e.preventDefault(); e.stopPropagation(); } });
 }
 
+function splitSidebarColumns(){
+  const root=document.querySelector('.sidebar-content');
+  if(!root) return;
+  if(root.querySelector('.sidebar-col')) return;
+  const sections=Array.from(root.children).filter(node=>node.tagName==='SECTION');
+  if(!sections.length) return;
+  const left=document.createElement('div');
+  const right=document.createElement('div');
+  left.className='sidebar-col sidebar-col-left';
+  right.className='sidebar-col sidebar-col-right';
+  sections.forEach((section,idx)=>{
+    if(idx%2===0) left.appendChild(section);
+    else right.appendChild(section);
+  });
+  root.append(left,right);
+}
+
+if(document.readyState!=='loading') splitSidebarColumns();
+
 document.addEventListener('DOMContentLoaded',()=>{
-  initStaticUI(); bindGlobalUI();
+  initStaticUI(); splitSidebarColumns(); bindGlobalUI();
   entryState.traits.push({id:uid(),kind:'free',section:'traits',title:'Острое зрение',text:'Монстр совершает проверки Мудрости (Восприятие), основанные на зрении, с преимуществом.'});
   entryState.actions.push({
     id:uid(), kind:'attack', section:'actions', title:'Укус', usage:{mode:'none',custom:''},
