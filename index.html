@@ -268,6 +268,7 @@
               <label class="field"><span>Сложность спасброска</span><input id="saveDc" type="number" min="1" max="30" value="13"></label>
               <label class="field"><span>Примечание</span><input id="balanceNote" type="text" placeholder="полёт, контроль, легендарные действия..."></label>
             </div>
+            <div id="warnings" class="warnings"></div>
           </div>
         </details>
       </section>
@@ -278,20 +279,18 @@
       <div class="preview-toolbar">
         <div class="toolbar-left"><strong>Предпросмотр</strong> <span class="muted">обновляется автоматически</span></div>
         <div class="toolbar-right">
-          <label class="toolbar-select"><span>Режим</span><select id="layoutMode">
+          <label class="toolbar-select"><select id="layoutMode">
             <option value="statblockOne" selected>1 колонка</option>
             <option value="statblockTwo">2 колонки</option>
-            <option value="showcase">Стартер-пак</option>
+            <option value="showcase">Полная</option>
           </select></label>
           <div class="chip" id="balanceChip">CR ≈ 1/2</div>
           <button type="button" onclick="downloadPNG()">Скачать PNG</button>
-          <button type="button" class="secondary" onclick="downloadJSON()">Скачать JSON</button>
-          <button type="button" class="secondary" onclick="loadJSON()">Загрузить JSON</button>
+          <button type="button" onclick="downloadJSON()">Скачать JSON</button>
+          <button type="button" onclick="loadJSON()">Загрузить JSON</button>
           <input type="file" id="jsonLoader" accept="application/json" hidden>
         </div>
       </div>
-
-      <div id="warnings" class="warnings"></div>
 
       <section id="previewCanvas" class="preview-canvas mode-statblock">
         <div class="showcase-top" id="showcaseTop">
