@@ -249,10 +249,6 @@ function calcAutoDpr(){
   const bonusTotal=bonusAttacks.reduce((sum,item)=>sum + (Number(item.damage?.average)||0), 0);
   return actionTotal + bonusTotal;
 }
-function calcAutoAC(scores,pb){
-  const dexMod=Math.max(0, mod(Number(scores.dex)||10));
-  return 10 + pb + dexMod;
-}
 function syncAttackDerived(entry){
   if(entry.kind!=='attack') return entry;
   ensureAttackShape(entry);
@@ -630,7 +626,8 @@ function updateAll(){
   const autoAC=document.getElementById('autoAC');
   if(autoAC){
     if(autoAC.checked){
-      const newAc=calcAutoAC(scores,pb);
+      const dexMod=Math.max(0, mod(scores.dex));
+      const newAc=10 + pb + dexMod;
       acInput.value=newAc;
       acInput.disabled=true;
     } else {
